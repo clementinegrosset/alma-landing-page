@@ -246,7 +246,7 @@
         <div onclick="toggleModal('waitlist-modal')" class="absolute inset-0 bg-black/60 backdrop-blur-md modal-backdrop pointer-events-auto"></div>
         
         <!-- Contenu de la modale -->
-        <div class="relative w-full sm:w-auto max-w-md bg-zinc-900/95 border-t border-r border-l sm:border border-zinc-800 rounded-t-3xl sm:rounded-2xl p-8 shadow-2xl overflow-hidden ring-1 ring-white/10 modal-content pointer-events-auto pb-10 sm:pb-8">
+        <div class="relative w-full sm:w-auto max-w-md bg-zinc-900/70 border-t border-r border-l sm:border border-zinc-800 rounded-t-3xl sm:rounded-2xl p-8 shadow-2xl overflow-hidden ring-1 ring-white/10 modal-content pointer-events-auto pb-10 sm:pb-8">
             
             <!-- Bouton fermer -->
             <button onclick="toggleModal('waitlist-modal')" class="absolute top-5 right-5 text-zinc-500 hover:text-zinc-200 transition-colors p-1 z-10" aria-label="Fermer">
@@ -257,19 +257,19 @@
                 <div class="w-10 h-10 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center mb-4">
                     <iconify-icon icon="lucide:sparkles" width="20" class="icon-gold-shine"></iconify-icon>
                 </div>
-                <h3 class="text-xl font-semibold text-zinc-200 tracking-tight mb-2 font-geist">Soyez informé.e du lancement !</h3>
-                <p class="text-sm text-zinc-400 font-geist">En nous rejoignant aujourd'hui, nous vous offrons 1 mois d'utilisation gratuite dès votre inscription.</p>
+                <h3 class="text-2xl font-semibold text-white tracking-tight mb-2 font-geist">Soyez informé.e du lancement !</h3>
+                <p class="text-base text-white font-geist">En nous rejoignant aujourd'hui, nous vous offrons 1 mois d'utilisation gratuite dès votre inscription.</p>
             </div>
 
             <!-- Formulaire -->
             <form id="waitlist-form" class="space-y-4" onsubmit="handleSubmit(event)">
                 <div>
-                    <label for="name" class="block text-xs font-medium text-zinc-500 mb-1.5 uppercase tracking-wider font-geist">Nom complet</label>
-                    <input type="text" id="name" name="name" required placeholder="Prénom Nom" class="w-full bg-zinc-950/50 border border-zinc-800 rounded-lg px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all font-geist">
+                    <label for="name" class="block text-xs font-medium text-zinc-400 mb-1.5 uppercase tracking-wider font-geist">Nom complet</label>
+                    <input type="text" id="name" name="name" required placeholder="Prénom Nom" class="w-full bg-zinc-950/50 border border-[0.5px] border-zinc-800 rounded-lg px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-[0.5px] focus:border-amber-400 focus:ring-0 shadow-md transition-all font-geist">
                 </div>
                 <div>
-                    <label for="email" class="block text-xs font-medium text-zinc-500 mb-1.5 uppercase tracking-wider font-geist">Adresse Email</label>
-                    <input type="email" id="email" name="email" required placeholder="hello@exemple.com" class="w-full bg-zinc-950/50 border border-zinc-800 rounded-lg px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all font-geist">
+                    <label for="email" class="block text-xs font-medium text-zinc-400 mb-1.5 uppercase tracking-wider font-geist">Adresse Email</label>
+                    <input type="email" id="email" name="email" required placeholder="hello@exemple.com" class="w-full bg-zinc-950/50 border border-[0.5px] border-zinc-800 rounded-lg px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-[0.5px] focus:border-amber-400 focus:ring-0 shadow-md transition-all font-geist">
                 </div>
 
                 <div class="pt-2">
@@ -285,11 +285,11 @@
                 <div class="w-14 h-14 bg-green-500/10 border border-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-green-400">
                     <iconify-icon icon="lucide:check" width="28"></iconify-icon>
                 </div>
-                <h3 class="text-xl font-semibold text-zinc-200 mb-2 font-geist">Merci !</h3>
-                <p class="text-sm text-zinc-400 font-geist">Vous êtes sur la liste d'attente.<br>Nous vous contacterons bientôt.</p>
+                <h3 class="text-xl font-semibold text-white mb-2 font-geist">Merci !</h3>
+                <p class="text-base text-white font-geist">Vous êtes sur la liste d'attente.<br>Nous vous contacterons bientôt.</p>
             </div>
 
-            <p id="waitlist-footer" class="mt-6 text-center text-xs text-zinc-600 font-geist">
+            <p id="waitlist-footer" class="mt-6 text-center text-xs text-zinc-400 font-geist">
                 Rejoignez +100 professionnels sur liste d'attente.
             </p>
         </div>
@@ -306,7 +306,7 @@
         <div onclick="toggleModal('info-modal')" class="modal-backdrop pointer-events-auto bg-black/60 absolute inset-0 backdrop-blur-md"></div>
         
         <!-- Contenu de la modale -->
-        <div class="relative w-full sm:w-auto max-w-lg bg-zinc-900/95 border-t border-r border-l sm:border border-zinc-800 rounded-t-3xl sm:rounded-2xl p-8 shadow-2xl ring-1 ring-white/10 modal-content pointer-events-auto pb-10 sm:pb-8">
+        <div class="relative w-full sm:w-auto max-w-lg bg-zinc-900/70 border-t border-r border-l sm:border border-zinc-800 rounded-t-3xl sm:rounded-2xl p-8 shadow-2xl ring-1 ring-white/10 modal-content pointer-events-auto pb-10 sm:pb-8">
             
             <!-- Bouton fermer -->
             <button onclick="toggleModal('info-modal')" class="absolute top-5 right-5 text-zinc-500 hover:text-zinc-200 transition-colors p-1 z-10" aria-label="Fermer">
@@ -314,11 +314,11 @@
             </button>
 
             <div class="mb-8 text-center sm:text-left">
-                <h3 class="text-3xl mb-3 font-space font-semibold text-zinc-200">Alma</h3>
-                <p class="text-base text-zinc-400 font-geist leading-relaxed">Le système de réservation dédié aux indépendants du secteur de la beauté.</p>
+                <h3 class="text-3xl mb-3 font-poppins font-semibold text-zinc-200">alma</h3>
+                <p class="text-base text-zinc-400 font-geist leading-relaxed">Votre passion mérite une gestion professionnelle</p>
             </div>
 
-            <div class="grid gap-5">
+            <div class="grid gap-4">
                 <!-- Caractéristique 1 -->
                 <div class="flex gap-4 p-3 rounded-xl bg-zinc-800/30 border border-zinc-800/50">
                     <div class="flex-shrink-0 w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
