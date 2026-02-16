@@ -3,19 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alma - Coming Soon</title>
-    <meta name="description" content="La première plateforme de réservation dédiée aux indépendants du secteur de la beauté.">
-    
-    <!-- Favicon (optionnel - vous pouvez ajouter votre propre icône plus tard) -->
+    <title>Balma - Réservation & gestion pour indépendants de la beauté</title>
+    <meta name="description" content="L'outil de réservation et de gestion pensé pour les indépendants du secteur beauté. 15€/mois. Site en 5 min, CA et caisse simplifiés.">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#C9A227">
+    <link rel="canonical" href="https://balma.co">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://balma.co">
+    <meta property="og:title" content="Balma - Réservation & gestion pour indépendants de la beauté">
+    <meta property="og:description" content="L'outil de réservation et de gestion pensé pour les indépendants du secteur beauté. 15€/mois. Site en 5 min, CA et caisse simplifiés.">
+    <meta property="og:image" content="https://balma.co/og-image.jpg">
+    <meta property="og:locale" content="fr_FR">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Balma - Réservation & gestion pour indépendants de la beauté">
+    <meta name="twitter:description" content="L'outil de réservation et de gestion pensé pour les indépendants du secteur beauté. 15€/mois. Site en 5 min, CA et caisse simplifiés.">
+    <meta name="twitter:image" content="https://balma.co/og-image.jpg">
+
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>✨</text></svg>">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#F4D03F',
+                            500: '#C9A227',
+                            600: '#B7950B',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     
-    <!-- Iconify Icons -->
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -23,12 +51,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
 
     <style>
-        /* Polices */
         .font-geist { font-family: 'Inter', sans-serif; }
         .font-space { font-family: 'Space Grotesk', sans-serif; }
         .font-poppins { font-family: 'Poppins', sans-serif; }
 
-        /* Animation du brouillard (Fog) */
         @keyframes drift {
             0% { transform: translateX(0) translateY(0); opacity: 0.4; }
             50% { transform: translateX(-20px) translateY(-10px); opacity: 0.6; }
@@ -39,7 +65,6 @@
             50% { transform: translateX(30px) translateY(15px); opacity: 0.5; }
             100% { transform: translateX(0) translateY(0); opacity: 0.3; }
         }
-
         .fog-layer-1 {
             animation: drift 20s ease-in-out infinite;
             background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08), transparent 60%);
@@ -48,103 +73,62 @@
             animation: drift-reverse 25s ease-in-out infinite;
             background: radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.05), transparent 50%);
         }
-
-        /* Ken Burns effect */
         @keyframes kenBurns {
             0% { transform: scale(1) translate(0, 0); }
             33% { transform: scale(1.1) translate(-2%, -1%); }
             66% { transform: scale(1.05) translate(1%, -2%); }
             100% { transform: scale(1) translate(0, 0); }
         }
-
-        .ken-burns {
-            animation: kenBurns 30s ease-in-out infinite;
-        }
+        .ken-burns { animation: kenBurns 30s ease-in-out infinite; }
         
-        /* Animation de fade-in */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        /* Animation d'apparition depuis le bas */
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(40px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         .animate-slide-up {
             opacity: 0;
             animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-
-        /* Texte doré brillant */
         @keyframes shine {
             0% { background-position: -200% center; }
             100% { background-position: 200% center; }
         }
-
         .text-gold-shine {
-            background: linear-gradient(
-                90deg,
-                #C9A227 0%,
-                #F4D03F 25%,
-                #FFF8DC 50%,
-                #F4D03F 75%,
-                #C9A227 100%
-            );
+            background: linear-gradient(90deg, #C9A227 0%, #F4D03F 25%, #FFF8DC 50%, #F4D03F 75%, #C9A227 100%);
             background-size: 200% auto;
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
             animation: shine 4s linear infinite;
         }
-
-        /* Icon gold shine */
+        .text-silver-shine {
+            background: linear-gradient(90deg, #6B7280 0%, #9CA3AF 25%, #E5E7EB 50%, #9CA3AF 75%, #6B7280 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 8s linear infinite;
+        }
         @keyframes iconShine {
             0%, 100% { color: #C9A227; }
             50% { color: #FFF8DC; }
         }
+        .icon-gold-shine { animation: iconShine 3s ease-in-out infinite; }
 
-        .icon-gold-shine {
-            animation: iconShine 3s ease-in-out infinite;
-        }
-
-        
-        /* --- Styles des Modales (Popups) --- */
-        
-        /* Conteneur principal */
-        .modal-container {
-            visibility: hidden;
-            transition: visibility 0s linear 0.3s;
-        }
-        
-        /* Classe ajoutée via JS pour afficher la modale */
-        .modal-container.active {
-            visibility: visible;
-            transition-delay: 0s;
-        }
-
-        /* Fond sombre (Backdrop) */
-        .modal-backdrop {
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .modal-container.active .modal-backdrop {
-            opacity: 1;
-        }
-
-        /* Animation Mobile : Glissement vers le haut */
+        .modal-container { visibility: hidden; transition: visibility 0s linear 0.3s; }
+        .modal-container.active { visibility: visible; transition-delay: 0s; }
+        .modal-backdrop { opacity: 0; transition: opacity 0.3s ease; }
+        .modal-container.active .modal-backdrop { opacity: 1; }
         .modal-content {
             transform: translateY(100%);
             transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease;
             opacity: 1;
         }
-        .modal-container.active .modal-content {
-            transform: translateY(0);
-        }
-
-        /* Animation Desktop : Zoom et Fondu */
+        .modal-container.active .modal-content { transform: translateY(0); }
         @media (min-width: 640px) {
             .modal-content {
                 transform: scale(0.95);
@@ -156,273 +140,531 @@
                 opacity: 1;
             }
         }
-
-        /* Masquer la barre de défilement */
         body::-webkit-scrollbar { display: none; }
         body { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Scroll reveal animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        .reveal-left {
+            opacity: 0;
+            transform: translateX(-40px);
+            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-left.visible { opacity: 1; transform: translateX(0); }
+
+        .reveal-right {
+            opacity: 0;
+            transform: translateX(40px);
+            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+        .reveal-scale {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-scale.visible { opacity: 1; transform: scale(1); }
+
+        /* Steps scroll animation */
+        .step-item {
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .step-item.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .step-item .step-number {
+            transform: scale(0);
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .step-item.visible .step-number {
+            transform: scale(1);
+        }
+        .steps-line {
+            position: absolute;
+            left: 19px;
+            top: 40px;
+            bottom: 10px;
+            width: 2px;
+            background: rgba(201, 162, 39, 0.15);
+        }
+        .steps-line::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(to bottom, #C9A227, #F4D03F);
+            border-radius: 1px;
+            transition: height 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 8px rgba(201, 162, 39, 0.3);
+        }
+        .steps-container.visible .steps-line::after {
+            height: 100%;
+        }
     </style>
+
+    <!-- Données structurées -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Balma",
+        "url": "https://balma.co",
+        "description": "L'outil de réservation et de gestion pensé pour les indépendants du secteur beauté. Site de réservation en ligne, suivi du CA et caisse simplifiée.",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "15",
+            "priceCurrency": "EUR",
+            "priceValidUntil": "2027-12-31",
+            "availability": "https://schema.org/PreOrder"
+        }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "Pourquoi 15€/mois ?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Balma est conçu pour les indépendants. Pas de formules « salon » ni d'options inutiles : vous payez un prix adapté à une activité solo, avec tout ce qu'il faut (site, CA, caisse)."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Y a-t-il un engagement ?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Non. Vous pouvez résilier à tout moment. Aucun engagement long terme."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Mes données sont-elles en sécurité ?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Oui. Vos données sont hébergées en Europe et nous ne les vendons pas. Vous restez propriétaire de vos informations clients et de votre activité."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "En quoi Balma est différent des autres ?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "La plupart des logiciels ciblent les salons et instituts (multi-postes, plannings complexes). Balma est pensé pour un.e seul.e professionnel.le : moins de fonctionnalités superflues, un prix juste, une prise en main rapide."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Comment vous contacter en cas de besoin ?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Par email à l'adresse indiquée dans le footer. Nous répondons sous 48h ouvrées."
+                }
+            }
+        ]
+    }
+    </script>
 </head>
-<body class="bg-zinc-950 text-zinc-100 font-sans antialiased h-screen w-full overflow-hidden selection:bg-zinc-700 selection:text-zinc-200 relative">
+<body class="bg-zinc-950 text-zinc-100 font-sans antialiased min-h-screen w-full selection:bg-zinc-700 selection:text-zinc-200 relative">
 
-    <!-- Image de fond -->
-    <div class="absolute inset-0 z-0 overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=2940&auto=format&fit=crop"
-             alt="Background"
-             class="w-full h-full object-cover opacity-40 grayscale contrast-125 ken-burns"
-             loading="eager">
-        <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-zinc-950/30"></div>
-    </div>
+    <!-- ========== HERO ========== -->
+    <header class="relative min-h-screen flex flex-col z-20">
+        <div class="absolute inset-0 z-0 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=2940&auto=format&fit=crop"
+                 alt="Salon de beauté indépendant - outil de réservation en ligne Balma"
+                 class="w-full h-full object-cover opacity-40 grayscale contrast-125 ken-burns"
+                 loading="eager">
+            <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-zinc-950/30"></div>
+        </div>
+        <div class="absolute inset-0 z-10 pointer-events-none">
+            <div class="fog-layer-1 absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 blur-3xl"></div>
+            <div class="fog-layer-2 absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 blur-3xl"></div>
+        </div>
 
-    <!-- Couches de brouillard -->
-    <div class="absolute inset-0 z-10 pointer-events-none">
-        <div class="fog-layer-1 absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 blur-3xl"></div>
-        <div class="fog-layer-2 absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 blur-3xl"></div>
-    </div>
-
-
-    <!-- Navigation -->
-    <nav class="z-30 flex w-full pt-8 pr-8 pb-8 pl-8 absolute top-0 left-0 items-center justify-between" style="animation: fadeIn 1s ease-out forwards;">
-        <div class="flex gap-4">
+        <nav class="z-30 flex w-full pt-8 pr-8 pb-8 pl-8 absolute top-0 left-0 items-center justify-between" style="animation: fadeIn 1s ease-out forwards;">
             <a href="#" class="text-zinc-400 hover:text-zinc-200 transition-colors duration-300" aria-label="Instagram">
                 <iconify-icon icon="mdi:instagram" width="22"></iconify-icon>
             </a>
-        </div>
-    </nav>
+            <div class="flex w-fit gap-6">
+                <a href="#fonctionnalites" class="text-sm text-zinc-400 hover:text-zinc-200 font-geist transition-colors">Fonctionnalités</a>
+                <a href="#tarifs" class="text-sm text-zinc-400 hover:text-zinc-200 font-geist transition-colors">Tarifs</a>
+                <a href="#faq" class="text-sm text-zinc-400 hover:text-zinc-200 font-geist transition-colors">FAQ</a>
+            </div>
+        </nav>
 
-    <!-- Contenu Principal -->
-    <main class="flex flex-col z-20 text-center h-full pr-4 pl-4 relative items-center justify-center">
-
-        <!-- Badge -->
-        <div class="animate-slide-up mb-6">
-            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-900/80 border border-zinc-800 text-xs font-medium text-zinc-400 font-geist backdrop-blur-sm">
-                <span class="w-1.5 h-1.5 rounded-full animate-pulse" style="background: #F4D03F;"></span>
-                Bientôt disponible
-            </span>
-        </div>
-
-        <!-- Logo -->
-        <div class="mb-6 relative group cursor-default animate-slide-up" style="animation-delay: 0.1s;">
-            <h1 class="md:text-8xl lg:text-9xl text-6xl tracking-tighter drop-shadow-2xl font-poppins font-semibold text-gold-shine">
-                alma
-            </h1>
-            <div class="absolute -inset-8 bg-white/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"></div>
-        </div>
-
-        <!-- Sous-titre -->
-        <div class="max-w-lg mx-auto mb-12 animate-slide-up" style="animation-delay: 0.2s;">
-            <p class="md:text-2xl text-xl font-medium text-zinc-200 tracking-tight font-geist mb-3">
-                Augmentez votre visibilité.
-            </p>
-            <p class="md:text-base text-sm text-zinc-200 font-geist leading-relaxed">
-                La première plateforme de réservation dédiée aux <span class="whitespace-nowrap">indépendants du secteur de la beauté.</span>
-            </p>
-        </div>
-
-        <!-- Boutons d'action -->
-        <div class="flex flex-col sm:flex-row gap-4 items-center justify-center w-full max-w-sm sm:max-w-none animate-slide-up" style="animation-delay: 0.35s;">
-            <!-- Bouton Waitlist -->
-            <button onclick="toggleModal('waitlist-modal')" class="group relative w-full sm:w-auto px-8 py-3 bg-zinc-200 text-black text-sm font-medium rounded-full overflow-hidden transition-all hover:bg-zinc-300 focus:ring-2 focus:ring-zinc-200 focus:ring-offset-2 focus:ring-offset-zinc-950">
-                <div class="relative z-10 flex items-center justify-center gap-2 font-geist">
+        <main class="flex-1 flex flex-col z-20 text-center px-4 relative items-center justify-center pt-24 pb-20">
+            <div class="animate-slide-up mb-6">
+                <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-900/80 border border-zinc-800 text-xs font-medium text-zinc-400 font-geist backdrop-blur-sm">
+                    <span class="w-1.5 h-1.5 rounded-full animate-pulse bg-gold-500"></span>
+                    Bientôt disponible
+                </span>
+            </div>
+            <div class="mb-6 relative group cursor-default animate-slide-up" style="animation-delay: 0.1s;">
+                <h1 class="md:text-8xl lg:text-9xl text-6xl tracking-tighter drop-shadow-2xl font-poppins font-semibold text-silver-shine">balma</h1>
+            </div>
+            <div class="max-w-lg mx-auto mb-12 animate-slide-up" style="animation-delay: 0.2s;">
+                <p class="md:text-2xl text-xl font-medium text-zinc-200 tracking-tight font-geist mb-3">
+                    Économisez du temps pour vos clients
+                </p>
+                <p class="md:text-base text-sm text-zinc-400 font-geist leading-relaxed">
+                    Réservation en ligne, suivi du CA et caisse.<br>Pensé pour les indépendants de la beauté, à 15€/mois.
+                </p>
+            </div>
+            <div class="animate-slide-up" style="animation-delay: 0.35s;">
+                <button onclick="toggleModal('waitlist-modal')" class="group inline-flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 bg-gold-500 hover:bg-gold-600 text-gray-900 text-sm font-semibold rounded-full transition-all focus:ring-2 focus:ring-gold-400 focus:ring-offset-2 focus:ring-offset-zinc-950 shadow-[0_0_8px_rgba(201,162,39,0.2)] hover:shadow-[0_0_12px_rgba(201,162,39,0.25)] font-geist">
                     <span>Rejoindre la liste d'attente</span>
                     <iconify-icon icon="lucide:arrow-right" width="16" class="transition-transform group-hover:translate-x-1"></iconify-icon>
-                </div>
-            </button>
+                </button>
+            </div>
+        </main>
+    </header>
 
-            <!-- Bouton Info -->
-            <button onclick="toggleModal('info-modal')" class="group sm:w-auto hover:border-zinc-500 hover:text-zinc-200 transition-all focus:ring-2 focus:ring-zinc-700 focus:ring-offset-2 focus:ring-offset-zinc-950 text-sm font-medium text-zinc-300 bg-transparent w-full border-zinc-700 border rounded-full pt-3 pr-8 pb-3 pl-8 backdrop-blur-sm">
-                <span class="flex items-center justify-center gap-2 font-geist">C'est quoi Alma ?</span>
+    <!-- ========== PROBLÈME → SOLUTION ========== -->
+    <section id="solution" class="relative z-20 py-20 sm:py-28 px-4 sm:px-6">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="reveal font-space text-2xl sm:text-3xl font-semibold text-zinc-100 mb-6">
+                Les logiciels de gestion sont pensés pour les salons et instituts. Leur prix aussi.
+            </h2>
+            <p class="reveal text-zinc-400 font-geist text-lg leading-relaxed mb-8" style="transition-delay: 0.1s;">
+                En tant qu'indépendant.e, vous n'avez pas besoin de gérer 10 postes ni des plannings à plusieurs. Vous avez besoin d'un outil simple : un site pour que vos clients réservent, un suivi de votre activité et une caisse claire. Sans payer une fortune.
+            </p>
+            <div class="reveal-scale inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-zinc-900/80 border border-zinc-800" style="transition-delay: 0.2s;">
+                <span class="text-gold-500 font-poppins text-2xl font-semibold">Balma</span>
+                <span class="text-zinc-500">|</span>
+                <span class="text-zinc-300 font-geist">Un outil pensé pour les indépendants, à <strong class="text-zinc-100">15€/mois</strong>.</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FONCTIONNALITÉS CLÉS ========== -->
+    <section id="fonctionnalites" class="relative z-20 py-20 sm:py-28 px-4 sm:px-6 border-t border-zinc-800/50">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="reveal font-space text-3xl sm:text-4xl font-semibold text-zinc-100 text-center mb-4">Ce que vous gagnez avec Balma</h2>
+            <p class="reveal text-zinc-400 font-geist text-center max-w-2xl mx-auto mb-16" style="transition-delay: 0.1s;">Des bénéfices concrets, pas des options inutiles.</p>
+
+            <div class="grid sm:grid-cols-2 gap-8 md:gap-10">
+                <div class="reveal-scale p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800">
+                    <div class="w-12 h-12 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-500 mb-5">
+                        <iconify-icon icon="lucide:calendar-check" width="24"></iconify-icon>
+                    </div>
+                    <h3 class="font-space text-lg sm:text-xl font-semibold text-zinc-100 mb-2">Vos clients réservent 24h/24</h3>
+                    <p class="text-zinc-400 font-geist text-sm leading-relaxed">Créez votre site de réservation en quelques minutes. Plus de « envoyez-moi un message pour réserver » : vos clients choisissent leur créneau et vous gagnez du temps.</p>
+                </div>
+                <div class="reveal-scale p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800" style="transition-delay: 0.1s;">
+                    <div class="w-12 h-12 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-500 mb-5">
+                        <iconify-icon icon="lucide:bar-chart-3" width="24"></iconify-icon>
+                    </div>
+                    <h3 class="font-space text-lg sm:text-xl font-semibold text-zinc-100 mb-2">Un tableau de bord pour piloter votre activité</h3>
+                    <p class="text-zinc-400 font-geist text-sm leading-relaxed">CA, meilleures prestations, clients fidèles : tout est centralisé. Vous voyez en un coup d'oeil ce qui marche et vous prenez les bonnes décisions.</p>
+                </div>
+                <div class="reveal-scale p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800" style="transition-delay: 0.2s;">
+                    <div class="w-12 h-12 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-500 mb-5">
+                        <iconify-icon icon="lucide:wallet" width="24"></iconify-icon>
+                    </div>
+                    <h3 class="font-space text-lg sm:text-xl font-semibold text-zinc-100 mb-2">Caisse et encaissements simplifiés</h3>
+                    <p class="text-zinc-400 font-geist text-sm leading-relaxed">Saisissez vos entrées et sorties, suivez les moyens de paiement. Une caisse claire pour votre activité, sans logiciel compliqué.</p>
+                </div>
+                <div class="reveal-scale p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800" style="transition-delay: 0.3s;">
+                    <div class="w-12 h-12 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-500 mb-5">
+                        <iconify-icon icon="mdi:piggy-bank" width="24"></iconify-icon>
+                    </div>
+                    <h3 class="font-space text-lg sm:text-xl font-semibold text-zinc-100 mb-2">Un prix qui correspond à votre réalité</h3>
+                    <p class="text-zinc-400 font-geist text-sm leading-relaxed">15€/mois, sans engagement caché. Pas de formule « salon 5 postes » à 80€ : vous payez pour un outil fait pour un indépendant.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== COMMENT ÇA MARCHE ========== -->
+    <section id="etapes" class="relative z-20 py-20 sm:py-28 px-4 sm:px-6 border-t border-zinc-800/50">
+        <div class="max-w-2xl mx-auto">
+            <h2 class="font-space text-3xl sm:text-4xl font-semibold text-zinc-100 mb-4">Comment ça marche</h2>
+            <p class="text-zinc-400 font-geist mb-12">En trois étapes, vous êtes opérationnel.le.</p>
+
+            <div class="steps-container relative space-y-8">
+                <div class="steps-line"></div>
+                <div class="step-item flex items-start gap-4">
+                    <span class="step-number flex-shrink-0 w-10 h-10 rounded-full bg-gold-500 text-gray-900 font-space font-bold text-sm flex items-center justify-center relative z-10">1</span>
+                    <div>
+                        <h3 class="font-space text-lg font-semibold text-zinc-100 mb-1">Crée ton compte</h3>
+                        <p class="text-zinc-400 font-geist">Inscription en quelques clics, sans engagement.</p>
+                    </div>
+                </div>
+                <div class="step-item flex items-start gap-4" style="transition-delay: 0.15s;">
+                    <span class="step-number flex-shrink-0 w-10 h-10 rounded-full bg-gold-500 text-gray-900 font-space font-bold text-sm flex items-center justify-center relative z-10" style="transition-delay: 0.15s;">2</span>
+                    <div>
+                        <h3 class="font-space text-lg font-semibold text-zinc-100 mb-1">Configure ton espace</h3>
+                        <p class="text-zinc-400 font-geist">Ajoute tes prestations, tes créneaux et personnalise ton site.</p>
+                    </div>
+                </div>
+                <div class="step-item flex items-start gap-4" style="transition-delay: 0.3s;">
+                    <span class="step-number flex-shrink-0 w-10 h-10 rounded-full bg-gold-500 text-gray-900 font-space font-bold text-sm flex items-center justify-center relative z-10" style="transition-delay: 0.3s;">3</span>
+                    <div>
+                        <h3 class="font-space text-lg font-semibold text-zinc-100 mb-1">Reçois tes réservations</h3>
+                        <p class="text-zinc-400 font-geist">Tes clients réservent en ligne, tu gères ton CA et ta caisse au même endroit.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== PRICING ========== -->
+    <section id="tarifs" class="relative z-20 py-20 sm:py-28 px-4 sm:px-6 border-t border-zinc-800/50 bg-zinc-900/30">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="reveal font-space text-3xl sm:text-4xl font-semibold text-zinc-100 text-center mb-4">Tarifs simples</h2>
+            <p class="reveal text-zinc-400 font-geist text-center mb-12" style="transition-delay: 0.1s;">Un seul prix, tout inclus.</p>
+
+            <div class="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                <div class="reveal-scale p-6 rounded-2xl bg-zinc-900/70 border border-zinc-800">
+                    <p class="font-space font-semibold text-zinc-200 mb-1">Découverte</p>
+                    <p class="text-3xl font-space font-bold text-zinc-100 mb-2">0€<span class="text-base font-normal text-zinc-400">/mois</span></p>
+                    <p class="text-sm text-zinc-500 font-geist mb-6">Essai gratuit pour découvrir l'outil.</p>
+                    <button onclick="toggleModal('waitlist-modal')" class="w-full py-2.5 rounded-lg border border-zinc-600 text-zinc-300 hover:bg-zinc-800 font-geist text-sm transition-colors">Rejoindre la liste</button>
+                </div>
+                <div class="reveal-scale p-6 rounded-2xl bg-zinc-900/70 border-2 border-gold-500 relative" style="transition-delay: 0.15s;">
+                    <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-gold-500 text-gray-900 text-xs font-semibold font-geist">Plus populaire</span>
+                    <p class="font-space font-semibold text-zinc-200 mb-1">Indépendant</p>
+                    <p class="text-3xl font-space font-bold text-zinc-100 mb-2">15€<span class="text-base font-normal text-zinc-400">/mois</span></p>
+                    <p class="text-sm text-zinc-500 font-geist mb-6">Site de résa, suivi CA, caisse. Sans engagement.</p>
+                    <button onclick="toggleModal('waitlist-modal')" class="w-full py-2.5 rounded-lg bg-gold-500 hover:bg-gold-600 text-gray-900 font-geist font-semibold text-sm transition-colors">Rejoindre la liste d'attente</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FAQ ========== -->
+    <section id="faq" class="relative z-20 py-20 sm:py-28 px-4 sm:px-6 border-t border-zinc-800/50">
+        <div class="max-w-2xl mx-auto">
+            <h2 class="reveal font-space text-3xl sm:text-4xl font-semibold text-zinc-100 text-center mb-12">Questions fréquentes</h2>
+
+            <div class="space-y-6">
+                <details class="reveal group p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
+                    <summary class="font-geist font-medium text-zinc-200 cursor-pointer list-none flex items-center justify-between gap-2">
+                        Pourquoi 15€/mois ?
+                        <iconify-icon icon="lucide:chevron-down" class="text-zinc-500 group-open:rotate-180 transition-transform" width="18"></iconify-icon>
+                    </summary>
+                    <p class="mt-3 text-zinc-400 font-geist text-sm leading-relaxed">Balma est conçu pour les indépendants. Pas de formules « salon » ni d’options inutiles : vous payez un prix adapté à une activité solo, avec tout ce qu’il faut (site, CA, caisse).</p>
+                </details>
+                <details class="reveal group p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
+                    <summary class="font-geist font-medium text-zinc-200 cursor-pointer list-none flex items-center justify-between gap-2">
+                        Y a-t-il un engagement ?
+                        <iconify-icon icon="lucide:chevron-down" class="text-zinc-500 group-open:rotate-180 transition-transform" width="18"></iconify-icon>
+                    </summary>
+                    <p class="mt-3 text-zinc-400 font-geist text-sm leading-relaxed">Non. Vous pouvez résilier à tout moment. Aucun engagement long terme.</p>
+                </details>
+                <details class="reveal group p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
+                    <summary class="font-geist font-medium text-zinc-200 cursor-pointer list-none flex items-center justify-between gap-2">
+                        Mes données sont-elles en sécurité ?
+                        <iconify-icon icon="lucide:chevron-down" class="text-zinc-500 group-open:rotate-180 transition-transform" width="18"></iconify-icon>
+                    </summary>
+                    <p class="mt-3 text-zinc-400 font-geist text-sm leading-relaxed">Oui. Vos données sont hébergées en Europe et nous ne les vendons pas. Vous restez propriétaire de vos informations clients et de votre activité.</p>
+                </details>
+                <details class="reveal group p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
+                    <summary class="font-geist font-medium text-zinc-200 cursor-pointer list-none flex items-center justify-between gap-2">
+                        En quoi Balma est différent des autres ?
+                        <iconify-icon icon="lucide:chevron-down" class="text-zinc-500 group-open:rotate-180 transition-transform" width="18"></iconify-icon>
+                    </summary>
+                    <p class="mt-3 text-zinc-400 font-geist text-sm leading-relaxed">La plupart des logiciels ciblent les salons et instituts (multi-postes, plannings complexes). Balma est pensé pour un.e seul.e professionnel.le : moins de fonctionnalités superflues, un prix juste, une prise en main rapide.</p>
+                </details>
+                <details class="reveal group p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
+                    <summary class="font-geist font-medium text-zinc-200 cursor-pointer list-none flex items-center justify-between gap-2">
+                        Comment vous contacter en cas de besoin ?
+                        <iconify-icon icon="lucide:chevron-down" class="text-zinc-500 group-open:rotate-180 transition-transform" width="18"></iconify-icon>
+                    </summary>
+                    <p class="mt-3 text-zinc-400 font-geist text-sm leading-relaxed">Par email à l’adresse indiquée dans le footer. Nous répondons sous 48h ouvrées.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== CTA FINAL ========== -->
+    <section class="relative z-20 py-20 sm:py-28 px-4 sm:px-6 border-t border-zinc-800/50">
+        <div class="max-w-2xl mx-auto text-center">
+            <h2 class="reveal font-space text-3xl sm:text-4xl font-semibold text-zinc-100 mb-4">Prêt.e à simplifier votre quotidien ?</h2>
+            <p class="reveal text-zinc-400 font-geist mb-8" style="transition-delay: 0.1s;">Rejoignez la liste d'attente et offrez-vous 1 mois gratuit au lancement.</p>
+            <button onclick="toggleModal('waitlist-modal')" class="reveal-scale inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-gold-500 hover:bg-gold-600 text-gray-900 text-sm font-semibold rounded-full transition-all focus:ring-2 focus:ring-gold-400 focus:ring-offset-2 focus:ring-offset-zinc-950 font-geist" style="transition-delay: 0.2s;">
+                <span>Rejoindre la liste d'attente</span>
+                <iconify-icon icon="lucide:arrow-right" width="16"></iconify-icon>
             </button>
         </div>
-    </main>
+    </section>
 
-    <!-- 
-    ===========================================
-    MODALE 1 : WAITLIST (Inscription)
-    ===========================================
-    -->
+    <!-- ========== FOOTER ========== -->
+    <footer class="relative z-20 py-12 px-4 sm:px-6 border-t border-zinc-800">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+            <p class="font-poppins text-lg text-gold-500 font-semibold">balma</p>
+            <div class="flex flex-wrap items-center justify-center gap-6 text-sm text-zinc-500 font-geist">
+                <a href="#" class="hover:text-zinc-300 transition-colors">Mentions légales</a>
+                <a href="#" class="hover:text-zinc-300 transition-colors">Politique de confidentialité</a>
+                <a href="mailto:hello@balma.co" class="hover:text-zinc-300 transition-colors">Contact</a>
+                <button type="button" onclick="toggleModal('info-modal')" class="hover:text-zinc-300 transition-colors">À propos</button>
+                <a href="#" class="text-zinc-400 hover:text-zinc-200 transition-colors" aria-label="Instagram">
+                    <iconify-icon icon="mdi:instagram" width="18"></iconify-icon>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========== MODALE WAITLIST ========== -->
     <div id="waitlist-modal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center modal-container pointer-events-none">
-        
-        <!-- Fond noir flouté -->
         <div onclick="toggleModal('waitlist-modal')" class="absolute inset-0 bg-black/60 backdrop-blur-md modal-backdrop pointer-events-auto"></div>
-        
-        <!-- Contenu de la modale -->
         <div class="relative w-full sm:w-auto max-w-md bg-zinc-900/70 border-t border-r border-l sm:border border-zinc-800 rounded-t-3xl sm:rounded-2xl p-8 shadow-2xl overflow-hidden ring-1 ring-white/10 modal-content pointer-events-auto pb-10 sm:pb-8">
-            
-            <!-- Bouton fermer -->
             <button onclick="toggleModal('waitlist-modal')" class="absolute top-5 right-5 text-zinc-500 hover:text-zinc-200 transition-colors p-1 z-10" aria-label="Fermer">
                 <iconify-icon icon="lucide:x" width="20"></iconify-icon>
             </button>
-
             <div id="waitlist-header" class="mb-6">
-                <div class="w-10 h-10 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center mb-4">
-                    <iconify-icon icon="lucide:sparkles" width="20" class="icon-gold-shine"></iconify-icon>
+                <div class="w-10 h-10 bg-gold-500/10 border border-gold-500/20 rounded-full flex items-center justify-center mb-4 text-gold-500">
+                    <iconify-icon icon="lucide:sparkles" width="20"></iconify-icon>
                 </div>
                 <h3 class="text-2xl font-semibold text-white tracking-tight mb-2 font-geist">Soyez informé.e du lancement !</h3>
-                <p class="text-base text-white font-geist">En nous rejoignant aujourd'hui, nous vous offrons 1 mois d'utilisation gratuite dès votre inscription.</p>
+                <p class="text-base text-zinc-300 font-geist">En nous rejoignant aujourd'hui, nous vous offrons 1 mois d'utilisation gratuite dès votre inscription.</p>
             </div>
-
-            <!-- Formulaire -->
             <form id="waitlist-form" class="space-y-4" onsubmit="handleSubmit(event)">
                 <div>
                     <label for="name" class="block text-xs font-medium text-zinc-400 mb-1.5 uppercase tracking-wider font-geist">Nom complet</label>
-                    <input type="text" id="name" name="name" required placeholder="Prénom Nom" class="w-full bg-zinc-950/50 border border-[0.5px] border-zinc-800 rounded-lg px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-[0.5px] focus:border-amber-400 focus:ring-0 shadow-md transition-all font-geist">
+                    <input type="text" id="name" name="name" required placeholder="Prénom Nom" class="w-full bg-zinc-950/50 border border-zinc-800 rounded-lg px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-gold-500 focus:ring-0 font-geist">
                 </div>
                 <div>
                     <label for="email" class="block text-xs font-medium text-zinc-400 mb-1.5 uppercase tracking-wider font-geist">Adresse Email</label>
-                    <input type="email" id="email" name="email" required placeholder="hello@exemple.com" class="w-full bg-zinc-950/50 border border-[0.5px] border-zinc-800 rounded-lg px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-[0.5px] focus:border-amber-400 focus:ring-0 shadow-md transition-all font-geist">
+                    <input type="email" id="email" name="email" required placeholder="hello@exemple.com" class="w-full bg-zinc-950/50 border border-zinc-800 rounded-lg px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-gold-500 focus:ring-0 font-geist">
                 </div>
-
                 <div class="pt-2">
-                    <button type="submit" class="w-full bg-zinc-200 hover:bg-zinc-300 text-black font-medium py-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2">
-                        <span class="font-geist">S'inscrire</span>
+                    <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-gray-900 font-medium py-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 font-geist">
+                        <span>S'inscrire</span>
                         <iconify-icon icon="lucide:arrow-right" width="14"></iconify-icon>
                     </button>
                 </div>
             </form>
-
-            <!-- Confirmation message (hidden by default) -->
             <div id="waitlist-success" class="hidden text-center py-8">
                 <div class="w-14 h-14 bg-green-500/10 border border-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-green-400">
                     <iconify-icon icon="lucide:check" width="28"></iconify-icon>
                 </div>
                 <h3 class="text-xl font-semibold text-white mb-2 font-geist">Merci !</h3>
-                <p class="text-base text-white font-geist">Vous êtes sur la liste d'attente.<br>Nous vous contacterons bientôt.</p>
+                <p class="text-base text-zinc-300 font-geist">Vous êtes sur la liste d'attente.<br>Nous vous contacterons bientôt.</p>
             </div>
-
-            <p id="waitlist-footer" class="mt-6 text-center text-xs text-zinc-400 font-geist">
-                Rejoignez +100 professionnels sur liste d'attente.
-            </p>
+            <p id="waitlist-footer" class="mt-6 text-center text-xs text-zinc-400 font-geist">Rejoignez +100 professionnels sur liste d'attente.</p>
         </div>
     </div>
 
-    <!-- 
-    ===========================================
-    MODALE 2 : INFO (C'est quoi Alma ?)
-    ===========================================
-    -->
+    <!-- ========== MODALE INFO (À propos) ========== -->
     <div id="info-modal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center modal-container pointer-events-none">
-        
-        <!-- Fond noir flouté -->
         <div onclick="toggleModal('info-modal')" class="modal-backdrop pointer-events-auto bg-black/60 absolute inset-0 backdrop-blur-md"></div>
-        
-        <!-- Contenu de la modale -->
         <div class="relative w-full sm:w-auto max-w-lg bg-zinc-900/70 border-t border-r border-l sm:border border-zinc-800 rounded-t-3xl sm:rounded-2xl p-8 shadow-2xl ring-1 ring-white/10 modal-content pointer-events-auto pb-10 sm:pb-8">
-            
-            <!-- Bouton fermer -->
             <button onclick="toggleModal('info-modal')" class="absolute top-5 right-5 text-zinc-500 hover:text-zinc-200 transition-colors p-1 z-10" aria-label="Fermer">
                 <iconify-icon icon="lucide:x" width="20"></iconify-icon>
             </button>
-
             <div class="mb-8 text-center sm:text-left">
-                <h3 class="text-3xl mb-3 font-poppins font-semibold text-zinc-200">alma</h3>
+                <h3 class="text-3xl mb-3 font-poppins font-semibold text-zinc-200">balma</h3>
                 <p class="text-base text-zinc-400 font-geist leading-relaxed">Votre passion mérite une gestion professionnelle</p>
             </div>
-
             <div class="grid gap-4">
-                <!-- Caractéristique 1 -->
                 <div class="flex gap-4 p-3 rounded-xl bg-zinc-800/30 border border-zinc-800/50">
-                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-500">
                         <iconify-icon icon="lucide:calendar-check" width="18"></iconify-icon>
                     </div>
                     <div>
                         <h4 class="text-base font-semibold text-zinc-200 mb-1 font-geist">Site de réservation</h4>
-                        <p class="text-sm text-zinc-500 leading-relaxed font-geist">
-                            Créez votre site en 5 min et laissez vos clients réserver une prestation 24h/24
-                        </p>
+                        <p class="text-sm text-zinc-500 leading-relaxed font-geist">Créez votre site en 5 min et laissez vos clients réserver une prestation 24h/24</p>
                     </div>
                 </div>
-
-                <!-- Caractéristique 2 -->
                 <div class="flex gap-4 p-3 rounded-xl bg-zinc-800/30 border border-zinc-800/50">
-                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-500">
                         <iconify-icon icon="lucide:bar-chart-3" width="18"></iconify-icon>
                     </div>
                     <div>
                         <h4 class="text-base font-semibold text-zinc-200 mb-1 font-geist">Gestion de l'activité</h4>
-                        <p class="text-sm text-zinc-500 leading-relaxed font-geist">
-                            Suivez votre CA, vos meilleures prestations et vos clients fidèles pour prendre les bonnes décisions
-                        </p>
+                        <p class="text-sm text-zinc-500 leading-relaxed font-geist">Suivez votre CA, vos meilleures prestations et vos clients fidèles pour prendre les bonnes décisions</p>
                     </div>
                 </div>
-
-                <!-- Caractéristique 3 -->
                 <div class="flex gap-4 p-3 rounded-xl bg-zinc-800/30 border border-zinc-800/50">
-                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-                            <iconify-icon icon="mdi:piggy-bank" width="18"></iconify-icon>
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-500">
+                        <iconify-icon icon="mdi:piggy-bank" width="18"></iconify-icon>
                     </div>
                     <div>
                         <h4 class="text-base font-semibold text-zinc-200 mb-1 font-geist">Tarif accessible</h4>
-                        <p class="text-sm text-zinc-500 leading-relaxed font-geist">
-                            À partir de 19€/mois, jusqu'à 3x moins cher que les autres solutions du marché
-                        </p>
+                        <p class="text-sm text-zinc-500 leading-relaxed font-geist">15€/mois, pensé pour les indépendants. Jusqu'à 3x moins cher que les solutions pour salons.</p>
                     </div>
                 </div>
             </div>
-
             <div class="mt-8 pt-6 border-t border-zinc-800 flex justify-center sm:justify-start">
-                <button onclick="toggleModal('info-modal'); setTimeout(() => toggleModal('waitlist-modal'), 300);" class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-2 font-geist group">
+                <button type="button" onclick="toggleModal('info-modal'); setTimeout(() => toggleModal('waitlist-modal'), 300);" class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-2 font-geist group">
                     Envie de nous rejoindre ?
-                    <span class="text-amber-400 group-hover:text-amber-300 font-medium">Inscrivez-vous</span>
-                    <iconify-icon icon="lucide:arrow-right" width="14" class="text-amber-400 group-hover:translate-x-1 transition-transform"></iconify-icon>
+                    <span class="text-gold-500 group-hover:text-gold-400 font-medium">Inscrivez-vous</span>
+                    <iconify-icon icon="lucide:arrow-right" width="14" class="text-gold-500 group-hover:translate-x-1 transition-transform"></iconify-icon>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Script de gestion des modales -->
     <script>
         function toggleModal(modalId) {
             const modal = document.getElementById(modalId);
             if (!modal) return;
             modal.classList.toggle('active');
         }
-
-        // Fermer la modale avec la touche Echap
         document.addEventListener('keydown', function(event) {
             if (event.key === "Escape") {
-                document.querySelectorAll('.modal-container.active').forEach(modal => {
-                    modal.classList.remove('active');
-                });
+                document.querySelectorAll('.modal-container.active').forEach(modal => modal.classList.remove('active'));
             }
         });
 
-        // Gestion du formulaire
+        // Scroll reveal animations
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale, .steps-container, .step-item').forEach(el => {
+            revealObserver.observe(el);
+        });
+
         async function handleSubmit(event) {
             event.preventDefault();
-
             const form = document.getElementById('waitlist-form');
             const successMsg = document.getElementById('waitlist-success');
             const footer = document.getElementById('waitlist-footer');
             const header = document.getElementById('waitlist-header');
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
-
-            // Loading state
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="font-geist">Envoi en cours...</span>';
-
             const formData = new FormData(form);
             const name = formData.get('name');
             const email = formData.get('email');
-
             try {
                 const response = await fetch('/api/waitlist', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email })
                 });
-
                 if (response.ok) {
-                    // Show success message
                     header.classList.add('hidden');
                     form.classList.add('hidden');
                     footer.classList.add('hidden');
                     successMsg.classList.remove('hidden');
-
-                    // Close modal after 3 seconds
                     setTimeout(() => {
                         toggleModal('waitlist-modal');
-                        // Reset form and UI after modal closes
                         setTimeout(() => {
                             form.reset();
                             header.classList.remove('hidden');
@@ -447,6 +689,5 @@
             }
         }
     </script>
-
 </body>
 </html>

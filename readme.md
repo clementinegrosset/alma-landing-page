@@ -1,6 +1,6 @@
-# Alma - Landing Page
+# Balma - Landing Page
 
-Landing page pour Alma, la première plateforme de réservation dédiée aux indépendants du secteur de la beauté.
+Landing page pour Balma, la première plateforme de réservation dédiée aux indépendants du secteur de la beauté.
 
 ## 🚀 Déploiement
 
@@ -31,4 +31,4 @@ Pour modifier cette page :
 
 ## 📝 License
 
-© 2024 Alma. Tous droits réservés.
+© 2024 Balma. Tous droits réservés.

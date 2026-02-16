@@ -48,6 +48,25 @@ export async function onRequestPost(context) {
       );
     }
 
+    // Send notification email via Brevo
+    try {
+      await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': env.BREVO_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { name: 'Balma', email: 'hello@balma.co' },
+          to: [{ email: 'hello@balma.co' }],
+          subject: 'Nouvel utilisateur',
+          textContent: `Nouvel inscrit sur la liste d'attente :\n\nNom : ${name}\nEmail : ${email}`,
+        }),
+      });
+    } catch (emailError) {
+      console.error('Brevo email error:', emailError);
+    }
+
     return new Response(
       JSON.stringify({ success: true, message: 'Added to waitlist' }),
       { status: 200, headers }
