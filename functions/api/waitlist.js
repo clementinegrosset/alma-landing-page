@@ -49,22 +49,30 @@ export async function onRequestPost(context) {
     }
 
     // Send notification email via Brevo
-    try {
-      await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          'api-key': env.BREVO_API_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sender: { name: 'Balma', email: 'hello@balma.co' },
-          to: [{ email: 'hello@balma.co' }],
-          subject: 'Nouvel utilisateur',
-          textContent: `Nouvel inscrit sur la liste d'attente :\n\nNom : ${name}\nEmail : ${email}`,
-        }),
-      });
-    } catch (emailError) {
-      console.error('Brevo email error:', emailError);
+    if (env.BREVO_API_KEY) {
+      try {
+        const brevoResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'api-key': env.BREVO_API_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sender: { name: 'Balma', email: 'hello@balma.co' },
+            to: [{ email: 'hello@balma.co' }],
+            subject: 'Nouvel utilisateur',
+            textContent: `Nouvel inscrit sur la liste d'attente :\n\nNom : ${name}\nEmail : ${email}`,
+          }),
+        });
+        if (!brevoResponse.ok) {
+          const brevoError = await brevoResponse.text();
+          console.error('Brevo API error:', brevoResponse.status, brevoError);
+        }
+      } catch (emailError) {
+        console.error('Brevo email error:', emailError);
+      }
+    } else {
+      console.error('BREVO_API_KEY is not set');
     }
 
     return new Response(
