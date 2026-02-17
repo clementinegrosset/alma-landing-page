@@ -453,18 +453,11 @@
             function isValidBase64ImageUrl(url) {
                 if (!url || typeof url !== 'string') return false;
                 if (url.indexOf('data:image') !== 0) return true; // Les URLs HTTP sont OK
-                // Vérifier que l'URL base64 est complète : doit avoir le format data:image/...;base64,... et se terminer correctement
-                var base64Match = url.match(/^data:image\/[^;]+;base64,([A-Za-z0-9+\/]+={0,3})$/);
-                if (!base64Match) return false;
-                // Vérifier que la chaîne base64 n'est pas tronquée au milieu d'un caractère
-                var base64Data = base64Match[1];
-                // Les chaînes base64 complètes se terminent par 0, 1, 2 ou 3 signes = (padding)
-                // Si elle se termine autrement, elle est probablement tronquée
-                return base64Data.length > 100 && // Minimum raisonnable pour une image compressée
-                       (base64Data.endsWith('=') || 
-                        base64Data.endsWith('==') || 
-                        base64Data.endsWith('===') ||
-                        /[A-Za-z0-9+\/]$/.test(base64Data)); // Ou se termine par un caractère base64 valide (pas de padding nécessaire si longueur multiple de 4)
+                // Vérifier le préfixe et la longueur minimale (sans regex sur toute la chaîne)
+                var commaIdx = url.indexOf(',');
+                if (commaIdx === -1 || url.indexOf(';base64') === -1) return false;
+                var base64Data = url.substring(commaIdx + 1);
+                return base64Data.length > 100 && /[A-Za-z0-9+\/=]$/.test(base64Data);
             }
             
             // Ne réinitialiser la galerie que si on a des données valides à appliquer
