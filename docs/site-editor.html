@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<!--
+  BUBBLE — Tes 3 variables vont ici (dans <head>) :
+  • VARIABLE 1 (website)     : LIGNE 78 — <script id="website-details-raw">__WEBSITE_DETAILS__</script>
+  • VARIABLE 2 (prestations) : LIGNE 81 — <script id="prestations-raw">__PRESTATIONS__</script>
+  • VARIABLE 3 (avis)        : LIGNE 84 — <script id="avis-raw">__AVIS__</script>
+  Remplacer __WEBSITE_DETAILS__, __PRESTATIONS__, __AVIS__ par tes formules Bubble (JSON).
+-->
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balma - Éditeur de Site</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        .font-geist { font-family: 'Inter', sans-serif; }
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        :root {
+            --bg-page: #ffffff;
+            --bg-section: #f9fafb;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --primary-color: #C9A227;
+            --primary-hover: #B7950B;
+            --primary-light: #FEFCE8;
+            --border-color: #e5e7eb;
+            --btn-text: #ffffff;
+        }
+        .theme-bg-page { background-color: var(--bg-page); }
+        .theme-bg-section { background-color: var(--bg-section); }
+        .theme-text-primary { color: var(--text-primary); }
+        .theme-text-secondary { color: var(--text-secondary); }
+        .theme-border { border-color: var(--border-color); }
+        .theme-btn { background-color: var(--primary-color); color: var(--btn-text); }
+        .theme-btn:hover { background-color: var(--primary-hover); }
+        .theme-tag { background-color: var(--primary-light); color: var(--primary-color); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+        .toggle-checkbox:checked { right: 0; border-color: #C9A227; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #C9A227; }
+        .editable-field:hover { outline: 1px dashed #C9A227; background-color: rgba(201, 162, 39, 0.05); cursor: text; border-radius: 4px; }
+        .editable-field:focus { outline: 2px solid #C9A227; background-color: white; border-radius: 4px; }
+        body:not(.view-only) .editable-field { outline: 1px dashed #C9A227; background-color: rgba(201, 162, 39, 0.05); border-radius: 4px; }
+        body:not(.view-only) .editable-field:focus { outline: 2px solid #C9A227; background-color: white; }
+        .view-only .edit-only { display: none !important; }
+        .view-only .editable-field { cursor: default; }
+        body:not(.view-only) .edit-hide { display: none !important; }
+        .section-separator { height: 0; border: none; border-top: 1px dashed var(--border-color); margin: 0; }
+        body.view-only .section-separator { display: none !important; }
+        body:not(.view-only) #site-preview section[class*="border-b"] { border-bottom: none !important; }
+        .masonry-grid { column-count: 2; column-gap: 1rem; }
+        @media (min-width: 768px) { .masonry-grid { column-count: 3; } }
+        .masonry-item { break-inside: avoid; margin-bottom: 1rem; }
+    </style>
+
+    <script>
+        tailwind.config = { theme: { extend: { colors: { gold: { 400: '#F4D03F', 500: '#C9A227', 600: '#B7950B' } } } } };
+    </script>
+
+    <!-- ============================================================================== -->
+    <!-- BUBBLE — OÙ METTRE TES 3 VARIABLES (remplacer le contenu entre les balises)   -->
+    <!-- ============================================================================== -->
+    <!-- VARIABLE 1 — Détails du website      : LIGNE 78, id="website-details-raw" -->
+    <!-- VARIABLE 2 — Liste des prestations  : LIGNE 81, id="prestations-raw"     -->
+    <!-- VARIABLE 3 — Liste des avis          : LIGNE 84, id="avis-raw"            -->
+    <!-- Format pour les 3 : JSON. En Bubble : replace(html, "__WEBSITE_DETAILS__", …) -->
+    <!-- ============================================================================== -->
+
+    <!-- ▼▼▼ VARIABLE 1 — Détails du website (objet JSON) — LIGNE 78 — Remplacer par ta variable Bubble en prod ▼▼▼ -->
+    <!-- Format accepté : Sections_display peut être un tableau ["about","avis","galerie"] ou une chaîne "Header (obligatoire), Prestations (obligatoire), galerie, about" -->
+    <!-- Format accepté : Galerie peut être un tableau ["url1","url2"] ou une chaîne "url1, url2" -->
+    <script type="text/plain" id="website-details-raw">VAR Website VAR1's text</script>
+
+    <!-- ▼▼▼ VARIABLE 2 — Liste des prestations (tableau JSON) — LIGNE 81 — Remplacer par ta variable Bubble en prod ▼▼▼ -->
+    <script type="text/plain" id="prestations-raw">[{"nom":"Make up jour","prix":"100","categorie":"Maquillage","duree_heure":"1","duree_min":"0","adresse":"","is_local":false},{"nom":"Coiffure sur-mesure","prix":"85","categorie":"Coiffure","duree_heure":"1","duree_min":"30","adresse":"12 rue de la Paix, Paris","is_local":true},{"nom":"Massage relaxant","prix":"90","categorie":"Massage","duree_heure":"1","duree_min":"0","adresse":"","is_local":false}]</script>
+
+    <!-- ▼▼▼ VARIABLE 3 — Liste des avis (tableau JSON) — LIGNE 84 — Remplacer par ta variable Bubble en prod ▼▼▼ -->
+    <script type="text/plain" id="avis-raw">[{"nom":"Léa M.","content":"Un moment magique, je suis ressortie détendue et ma peau est rayonnante. Merci !","etoile":5},{"nom":"Claire D.","content":"Très professionnelle et à l'écoute. Le salon est magnifique.","etoile":5}]</script>
+    <script>
+        (function(){
+            function getRaw(id) {
+                var el = document.getElementById(id);
+                var raw = (el && el.textContent) ? el.textContent.trim() : '';
+                return (raw && raw.indexOf('__') === 0) ? '' : raw;
+            }
+            function parseJson(id, fallback) {
+                var raw = getRaw(id);
+                if (!raw) return fallback;
+                try { return JSON.parse(raw); } catch (e) { return fallback; }
+            }
+            window.WEBSITE_DETAILS = parseJson('website-details-raw', {});
+            window.PRESTATIONS_LIST = parseJson('prestations-raw', []);
+            window.AVIS_LIST = parseJson('avis-raw', []);
+        })();
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-geist antialiased min-h-screen overflow-y-auto">
+
+    <main class="min-h-full">
+        <div class="bg-gray-100 p-4 md:p-8 pb-12">
+
+            <div id="theme-selector" class="edit-only max-w-3xl mx-auto mb-4 flex items-center justify-center gap-3 bg-white rounded-lg border border-gray-200 px-4 py-3 shadow-sm">
+                <span class="text-sm font-medium text-gray-600">Thème du site</span>
+                <div class="flex gap-2">
+                    <button type="button" onclick="setTheme('balma')" class="w-7 h-7 rounded-full bg-[#C9A227] border-2 border-white shadow-sm ring-1 ring-gray-200 hover:scale-110 transition-transform" title="Balma"></button>
+                    <button type="button" onclick="setTheme('onyx')" class="w-7 h-7 rounded-full bg-[#000000] border-2 border-white shadow-sm ring-1 ring-gray-200 hover:scale-110 transition-transform" title="Onyx"></button>
+                    <button type="button" onclick="setTheme('poudre')" class="w-7 h-7 rounded-full bg-[#E5B8B7] border-2 border-white shadow-sm ring-1 ring-gray-200 hover:scale-110 transition-transform" title="Rose Poudré"></button>
+                    <button type="button" onclick="setTheme('vegetal')" class="w-7 h-7 rounded-full bg-[#5D7A64] border-2 border-white shadow-sm ring-1 ring-gray-200 hover:scale-110 transition-transform" title="Végétal"></button>
+                    <button type="button" onclick="setTheme('lagon')" class="w-7 h-7 rounded-full bg-[#4A8CA6] border-2 border-white shadow-sm ring-1 ring-gray-200 hover:scale-110 transition-transform" title="Lagon"></button>
+                    <button type="button" onclick="setTheme('terre')" class="w-7 h-7 rounded-full bg-[#C27A59] border-2 border-white shadow-sm ring-1 ring-gray-200 hover:scale-110 transition-transform" title="Terre Cuite"></button>
+                </div>
+            </div>
+
+            <input type="hidden" id="Theme" value="balma">
+
+            <div id="site-preview" class="max-w-3xl mx-auto bg-white theme-bg-page rounded-xl shadow-sm border border-gray-200 overflow-hidden min-h-[800px] transition-colors duration-500">
+
+                <!-- HEADER -->
+                <section class="relative group pb-8">
+                    <div class="h-48 md:h-64 bg-gray-200 relative overflow-hidden group/banner">
+                        <div id="Banniere" class="absolute inset-0 bg-cover bg-center transition-transform duration-700 hover:scale-105" style="background-image: url('');"></div>
+                        <div class="absolute inset-0 bg-black/20"></div>
+                        <button type="button" class="edit-only absolute top-4 right-4 bg-white/90 backdrop-blur text-gray-800 px-3 py-1.5 rounded-lg text-xs font-medium shadow-sm flex items-center gap-2 hover:bg-white" onclick="document.getElementById('Banniere_file').click()">
+                            <iconify-icon icon="lucide:image" width="14"></iconify-icon> Modifier la bannière
+                        </button>
+                        <input type="file" id="Banniere_file" class="hidden edit-only" accept="image/*" onchange="handleImageUpload(event, 'Banniere', true)">
+                    </div>
+
+                    <div class="px-6 md:px-10 -mt-16 relative flex flex-col items-center text-center">
+                        <div class="flex flex-col items-center gap-2 mb-4">
+                            <div class="w-32 h-32 rounded-full border-4 border-white shadow-md overflow-hidden bg-white relative group/logo">
+                                <div id="Logo_placeholder" class="w-full h-full bg-gold-50 text-gold-600 flex items-center justify-center text-2xl font-semibold tracking-widest font-space">AL</div>
+                                <img id="Logo" src="" class="w-full h-full object-cover hidden" alt="Logo">
+                                <div class="edit-only absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity rounded-full" onclick="document.getElementById('Logo_file').click()">
+                                    <iconify-icon icon="lucide:camera" class="text-white" width="24"></iconify-icon>
+                                </div>
+                                <input type="file" id="Logo_file" class="hidden edit-only" accept="image/*" onchange="handleImageUpload(event, 'Logo', false, 'Logo_placeholder')">
+                            </div>
+                            <button type="button" id="Logo_remove" class="edit-only text-xs text-gray-500 hover:text-red-600 hidden" onclick="removeLogo()">Supprimer le logo</button>
+                        </div>
+
+                        <div class="max-w-lg w-full">
+                            <h2 id="Titre" contenteditable="true" class="editable-field font-space font-bold theme-text-primary mb-2 px-2 py-1 text-2xl md:text-3xl tracking-tight" data-placeholder="Nom du salon ou Prénom Nom">Nom du salon ou Prénom Nom</h2>
+                            <p id="Description" contenteditable="true" class="editable-field font-geist theme-text-secondary text-base leading-relaxed px-2 py-1" data-placeholder="Courte description de votre activité">Courte description de votre activité</p>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="section-separator" aria-hidden="true"></div>
+
+                <!-- PRESTATIONS (remplies depuis variable __PRESTATIONS__) -->
+                <section class="px-6 md:px-10 py-12 border-b theme-border">
+                    <div class="flex items-center justify-between mb-8">
+                        <h3 class="font-space font-bold text-xl theme-text-primary">Prestations</h3>
+                        <a href="#" class="edit-hide text-xs font-medium text-gray-500 hover:text-gray-900 flex items-center gap-1 transition-colors">Gérer mes prestations <iconify-icon icon="lucide:arrow-right" width="12"></iconify-icon></a>
+                    </div>
+                    <div id="prestations-categories"></div>
+                    <div id="prestations-empty" class="py-8 text-center theme-text-secondary text-sm">Aucune prestation pour le moment.</div>
+                </section>
+
+                <div class="section-separator" data-before="section-about" aria-hidden="true"></div>
+
+                <!-- À PROPOS -->
+                <section class="relative border-b theme-border transition-all duration-300" id="section-about">
+                    <div class="edit-only absolute top-4 right-6 z-10 flex items-center gap-2 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
+                        <span class="text-[10px] uppercase font-bold text-gray-400">Visible</span>
+                        <div class="relative inline-block w-8 h-4 align-middle select-none">
+                            <input type="checkbox" id="Section_about_visible" checked onclick="toggleSection('about-content', this)" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer transition-all duration-300"/>
+                            <label class="toggle-label block overflow-hidden h-4 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></label>
+                        </div>
+                    </div>
+                    <div id="about-content" class="px-6 md:px-10 py-12 flex flex-col md:flex-row gap-8 items-center md:items-start transition-opacity duration-300">
+                        <div class="flex flex-col items-center gap-2 flex-shrink-0">
+                            <div class="w-32 h-40 md:w-48 md:h-56 relative group rounded-2xl overflow-hidden bg-gray-100 shadow-md transform rotate-[-2deg] hover:rotate-0 transition-transform duration-300">
+                                <div id="Photo_about_placeholder" class="w-full h-full bg-gold-50 text-gold-600 flex items-center justify-center text-2xl font-semibold font-space">AB</div>
+                                <img id="Photo_about" src="" class="w-full h-full object-cover hidden" alt="À propos">
+                                <div class="edit-only absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" onclick="document.getElementById('Photo_about_file').click()">
+                                    <iconify-icon icon="lucide:camera" class="text-white" width="24"></iconify-icon>
+                                </div>
+                                <input type="file" id="Photo_about_file" class="hidden edit-only" accept="image/*" onchange="handleImageUpload(event, 'Photo_about', false, 'Photo_about_placeholder')">
+                            </div>
+                            <button type="button" id="Photo_about_remove" class="edit-only text-xs text-gray-500 hover:text-red-600 hidden" onclick="removeAboutPhoto()">Supprimer la photo</button>
+                        </div>
+                        <div class="flex-1 text-center md:text-left">
+                            <h3 class="font-space font-bold text-xl theme-text-primary mb-4">À propos de moi</h3>
+                            <div id="Texte_about" contenteditable="true" class="editable-field theme-text-secondary leading-relaxed text-sm p-2 -ml-2" data-placeholder="Présentez-vous en quelques lignes...">Présentez-vous en quelques lignes...</div>
+                            <div class="mt-6 flex gap-3 justify-center md:justify-start">
+                                <a href="#" class="text-gray-400 hover:text-gray-600 transition-colors"><iconify-icon icon="lucide:instagram" width="20"></iconify-icon></a>
+                                <a href="#" class="text-gray-400 hover:text-gray-600 transition-colors"><iconify-icon icon="lucide:facebook" width="20"></iconify-icon></a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="section-separator" data-before="section-reviews" aria-hidden="true"></div>
+
+                <!-- AVIS (remplis depuis variable __AVIS__) -->
+                <section class="relative border-b theme-border theme-bg-section" id="section-reviews">
+                    <div class="edit-only absolute top-4 right-6 z-10 flex items-center gap-2 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
+                        <span class="text-[10px] uppercase font-bold text-gray-400">Avis</span>
+                        <div class="relative inline-block w-8 h-4 align-middle select-none">
+                            <input type="checkbox" id="Section_avis_visible" checked onclick="toggleSection('reviews-content', this)" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer transition-all duration-300"/>
+                            <label class="toggle-label block overflow-hidden h-4 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></label>
+                        </div>
+                    </div>
+                    <div id="reviews-content" class="px-6 md:px-10 py-12 transition-opacity duration-300">
+                        <h3 class="font-space font-bold text-xl text-center theme-text-primary mb-8">Ce qu'ils disent</h3>
+                        <div id="reviews-empty-state" class="py-12 text-center hidden">
+                            <div class="max-w-md mx-auto">
+                                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                                    <iconify-icon icon="lucide:message-square" class="text-gray-400" width="32"></iconify-icon>
+                                </div>
+                                <h4 class="font-medium theme-text-primary mb-2">Aucun avis pour le moment</h4>
+                                <p class="text-sm theme-text-secondary">Soyez le premier à réserver un rendez-vous et laissez votre avis</p>
+                            </div>
+                        </div>
+                        <div id="reviews-dynamic-cards" class="grid md:grid-cols-2 gap-4"></div>
+                    </div>
+                </section>
+
+                <div class="section-separator" data-before="section-gallery" aria-hidden="true"></div>
+
+                <!-- GALERIE -->
+                <section class="relative pb-12" id="section-gallery">
+                    <div class="edit-only absolute top-4 right-6 z-10 flex items-center gap-2 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
+                        <span class="text-[10px] uppercase font-bold text-gray-400">Galerie</span>
+                        <div class="relative inline-block w-8 h-4 align-middle select-none">
+                            <input type="checkbox" id="Section_galerie_visible" checked onclick="toggleSection('gallery-content', this)" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer transition-all duration-300"/>
+                            <label class="toggle-label block overflow-hidden h-4 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></label>
+                        </div>
+                    </div>
+                    <div id="gallery-content" class="px-6 md:px-10 py-12 transition-opacity duration-300">
+                        <h3 class="font-space font-bold text-xl theme-text-primary mb-6">Galerie Photos</h3>
+                        <div class="masonry-grid" id="Galerie">
+                            <div class="masonry-item edit-only">
+                                <button type="button" onclick="document.getElementById('Galerie_file').click()" class="w-full min-h-[140px] rounded-lg border-2 border-dashed theme-border bg-transparent hover:bg-gray-100 flex flex-col items-center justify-center gap-2 py-6 transition-colors cursor-pointer">
+                                    <iconify-icon icon="lucide:plus-circle" width="28" class="theme-text-secondary"></iconify-icon>
+                                    <span class="text-sm font-medium theme-text-secondary">Ajouter une photo</span>
+                                </button>
+                            </div>
+                        </div>
+                        <input type="file" id="Galerie_file" class="hidden" accept="image/*" multiple onchange="addToGallery(event)">
+                    </div>
+                </section>
+
+                <div class="py-6 text-center text-xs theme-text-secondary border-t theme-border">
+                    <p>© 2026 Balma. Créé avec passion.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="lightbox" class="fixed inset-0 z-50 bg-black/90 hidden flex items-center justify-center p-4 backdrop-blur-sm" onclick="this.classList.add('hidden')">
+        <img id="lightbox-img" src="" class="max-w-full max-h-full rounded-lg shadow-2xl" alt="Zoom">
+    </div>
+
+    <script>
+        // --- Conventions ---
+        // 1. Page dans un élément HTML Bubble (pas d'iframe).
+        // 2. Trois variables : __WEBSITE_DETAILS__ (JSON), __PRESTATIONS__ (JSON), __AVIS__ (JSON).
+        // 3. Chaque input a un id = nom du champ Bubble (Titre, Description, Logo, Photo_about, Banniere, Texte_about, Theme, Section_about_visible, Section_avis_visible, Section_galerie_visible, Galerie).
+        // 4. Les valeurs par défaut sont celles injectées par Bubble.
+
+        var DEFAULT_BANNER = 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=2940&auto=format&fit=crop';
+        var PLACEHOLDER_TITRE = 'Nom du salon ou Prénom Nom';
+        var PLACEHOLDER_DESC = 'Courte description de votre activité';
+        var PLACEHOLDER_ABOUT = 'Présentez-vous en quelques lignes...';
+
+        var SECTION_IDS = { about: 'section-about', avis: 'section-reviews', galerie: 'section-gallery' };
+        var currentTheme = 'balma';
+
+        function getEditorRoot() {
+            try {
+                var script = document.currentScript;
+                if (script) {
+                    var root = script.getRootNode();
+                    if (root && root.nodeType === 11) return root;
+                }
+            } catch (e) {}
+            return document;
+        }
+        var EDITOR_ROOT = getEditorRoot();
+
+        function setEditableMode(editable) {
+            var isEditable = editable === true || editable === 'true' || editable === '1';
+            document.body.classList.toggle('view-only', !isEditable);
+            var editables = EDITOR_ROOT.querySelectorAll ? EDITOR_ROOT.querySelectorAll('.editable-field') : document.querySelectorAll('.editable-field');
+            for (var i = 0; i < editables.length; i++) editables[i].setAttribute('contenteditable', isEditable ? 'true' : 'false');
+        }
+
+        function setSectionVisibility(sectionKey, visible) {
+            var sectionId = SECTION_IDS[sectionKey];
+            var contentId = { about: 'about-content', avis: 'reviews-content', galerie: 'gallery-content' }[sectionKey];
+            var root = EDITOR_ROOT;
+            var sep = (root.querySelector && root.querySelector('.section-separator[data-before="' + sectionId + '"]')) || document.querySelector('.section-separator[data-before="' + sectionId + '"]');
+            var section = (root.getElementById && root.getElementById(sectionId)) || document.getElementById(sectionId);
+            var check = section ? section.querySelector('input[type="checkbox"]') : null;
+            if (section) section.style.display = visible ? '' : 'none';
+            if (sep) sep.style.display = visible ? '' : 'none';
+            if (check) { check.checked = visible; toggleSection(contentId, check); }
+        }
+
+        function applyWebsiteDetails(details) {
+            if (!details || typeof details !== 'object') return;
+            var d = details;
+            var root = EDITOR_ROOT;
+            var byId = root.getElementById || function(id) { return root.querySelector('#' + id); };
+
+            var titreEl = byId.call(root, 'Titre');
+            if (titreEl) titreEl.textContent = (d.Titre != null && d.Titre !== '') ? String(d.Titre) : PLACEHOLDER_TITRE;
+
+            var descEl = byId.call(root, 'Description');
+            if (descEl) descEl.textContent = (d.Description != null && d.Description !== '') ? String(d.Description) : PLACEHOLDER_DESC;
+
+            var banniereEl = byId.call(root, 'Banniere');
+            if (banniereEl) banniereEl.style.backgroundImage = "url('" + (d.Banniere || DEFAULT_BANNER) + "')";
+
+            var logoEl = byId.call(root, 'Logo');
+            var logoPh = byId.call(root, 'Logo_placeholder');
+            if (logoEl) {
+                if (d.Logo) {
+                    logoEl.src = d.Logo;
+                    logoEl.classList.remove('hidden');
+                    if (logoPh) logoPh.classList.add('hidden');
+                } else {
+                    logoEl.classList.add('hidden');
+                    logoEl.removeAttribute('src');
+                    if (logoPh) logoPh.classList.remove('hidden');
+                }
+            }
+            var logoRemove = byId.call(root, 'Logo_remove');
+            if (logoRemove) logoRemove.classList.toggle('hidden', !d.Logo);
+
+            var photoAboutEl = byId.call(root, 'Photo_about');
+            var photoAboutPh = byId.call(root, 'Photo_about_placeholder');
+            if (photoAboutEl) {
+                if (d.Photo_about) {
+                    photoAboutEl.src = d.Photo_about;
+                    photoAboutEl.classList.remove('hidden');
+                    if (photoAboutPh) photoAboutPh.classList.add('hidden');
+                } else {
+                    photoAboutEl.classList.add('hidden');
+                    photoAboutEl.removeAttribute('src');
+                    if (photoAboutPh) photoAboutPh.classList.remove('hidden');
+                }
+            }
+            var photoAboutRemove = byId.call(root, 'Photo_about_remove');
+            if (photoAboutRemove) photoAboutRemove.classList.toggle('hidden', !d.Photo_about);
+
+            var texteAboutEl = byId.call(root, 'Texte_about');
+            if (texteAboutEl) texteAboutEl.textContent = (d.Texte_about != null && d.Texte_about !== '') ? String(d.Texte_about) : PLACEHOLDER_ABOUT;
+
+            var themeEl = byId.call(root, 'Theme');
+            var theme = (d.Theme || 'balma').toLowerCase();
+            if (themeEl) themeEl.value = theme;
+            setTheme(theme);
+
+            var sections = d.Sections_display;
+            if (Array.isArray(sections)) {
+                setSectionVisibility('about', sections.indexOf('about') !== -1);
+                setSectionVisibility('avis', sections.indexOf('avis') !== -1);
+                setSectionVisibility('galerie', sections.indexOf('galerie') !== -1);
+            } else if (typeof sections === 'string') {
+                // Split par virgule et nettoyer chaque section
+                var arr = sections.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+                // Normaliser les noms de sections et ignorer les sections obligatoires
+                var norm = arr.map(function(s) {
+                    var lower = s.toLowerCase();
+                    // Ignorer les sections obligatoires (Header, Prestations)
+                    if (/header|header\s*\(obligatoire\)/i.test(lower)) return null;
+                    if (/prestations|prestations\s*\(obligatoire\)/i.test(lower)) return null;
+                    // Normaliser les noms de sections optionnelles
+                    if (/à\s*propos|a\s*propos|propos|about/i.test(lower)) return 'about';
+                    if (/gallerie|galerie|gallery/i.test(lower)) return 'galerie';
+                    if (/avis|reviews|témoignages/i.test(lower)) return 'avis';
+                    return lower;
+                }).filter(Boolean);
+                setSectionVisibility('about', norm.indexOf('about') !== -1);
+                setSectionVisibility('avis', norm.indexOf('avis') !== -1);
+                setSectionVisibility('galerie', norm.indexOf('galerie') !== -1);
+            }
+
+            var galerieUrls = d.Galerie;
+            var galerieArray = [];
+            
+            // Fonction pour nettoyer et valider une URL d'image
+            function cleanAndValidateImageUrl(url) {
+                if (!url || typeof url !== 'string') return null;
+                var cleaned = url.trim().replace(/^["'\[\]\s]+|["'\[\]\s]+$/g, '');
+                // Accepter toutes les URLs valides : http://, https://, data:image, et même les URLs relatives
+                // Exclure seulement les valeurs manifestement invalides
+                if (cleaned.length === 0 || 
+                    cleaned === 'about:blank' || 
+                    cleaned.toLowerCase() === 'galerie' ||
+                    cleaned.toLowerCase() === 'null' ||
+                    cleaned.toLowerCase() === 'undefined') {
+                    return null;
+                }
+                return cleaned;
+            }
+            
+            if (Array.isArray(galerieUrls)) {
+                // Si c'est un tableau, traiter chaque élément
+                galerieUrls.forEach(function(item) {
+                    if (typeof item === 'string' && item.trim() !== '') {
+                        var trimmed = item.trim();
+                        if (trimmed.indexOf('data:') === 0) {
+                            // Data URL (base64) — ne pas splitter, contient des , et ;
+                            var cleaned = cleanAndValidateImageUrl(trimmed);
+                            if (cleaned) {
+                                galerieArray.push(cleaned);
+                            }
+                        } else if (trimmed.indexOf(',') !== -1) {
+                            // L'élément contient plusieurs URLs séparées par des virgules
+                            var splitUrls = trimmed.split(/[,;]/)
+                                .map(cleanAndValidateImageUrl)
+                                .filter(function(url) { return url !== null; });
+                            galerieArray = galerieArray.concat(splitUrls);
+                        } else {
+                            // Un seul URL dans cet élément
+                            var cleaned = cleanAndValidateImageUrl(trimmed);
+                            if (cleaned) {
+                                galerieArray.push(cleaned);
+                            }
+                        }
+                    }
+                });
+            } else if (typeof galerieUrls === 'string' && galerieUrls.trim() !== '') {
+                var trimmedGalerie = galerieUrls.trim();
+                if (trimmedGalerie.indexOf('data:') === 0) {
+                    // Une seule data URL (base64) — ne pas splitter
+                    var cleanedSingle = cleanAndValidateImageUrl(trimmedGalerie);
+                    if (cleanedSingle) {
+                        galerieArray.push(cleanedSingle);
+                    }
+                } else {
+                    // Si c'est une chaîne, split par virgule ou point-virgule
+                    galerieArray = trimmedGalerie.split(/[,;]/)
+                        .map(cleanAndValidateImageUrl)
+                        .filter(function(url) { return url !== null; });
+                }
+            }
+            
+            // Fonction pour valider qu'une URL base64 est complète (non tronquée)
+            function isValidBase64ImageUrl(url) {
+                if (!url || typeof url !== 'string') return false;
+                if (url.indexOf('data:image') !== 0) return true; // Les URLs HTTP sont OK
+                // Vérifier que l'URL base64 est complète : doit avoir le format data:image/...;base64,... et se terminer correctement
+                var base64Match = url.match(/^data:image\/[^;]+;base64,([A-Za-z0-9+\/]+={0,3})$/);
+                if (!base64Match) return false;
+                // Vérifier que la chaîne base64 n'est pas tronquée au milieu d'un caractère
+                var base64Data = base64Match[1];
+                // Les chaînes base64 complètes se terminent par 0, 1, 2 ou 3 signes = (padding)
+                // Si elle se termine autrement, elle est probablement tronquée
+                return base64Data.length > 100 && // Minimum raisonnable pour une image compressée
+                       (base64Data.endsWith('=') || 
+                        base64Data.endsWith('==') || 
+                        base64Data.endsWith('===') ||
+                        /[A-Za-z0-9+\/]$/.test(base64Data)); // Ou se termine par un caractère base64 valide (pas de padding nécessaire si longueur multiple de 4)
+            }
+            
+            // Ne réinitialiser la galerie que si on a des données valides à appliquer
+            // Si galerieUrls est vide ou undefined, on ne touche pas à la galerie existante
+            if (galerieUrls !== undefined && galerieUrls !== null) {
+                var grid = byId.call(root, 'Galerie');
+                if (grid) {
+                    // Filtrer les URLs valides (exclure les URLs base64 tronquées)
+                    var validUrls = galerieArray.filter(function(url) {
+                        if (!url) return false;
+                        // Si c'est une URL base64, vérifier qu'elle n'est pas tronquée
+                        if (url.indexOf('data:image') === 0) {
+                            var isValid = isValidBase64ImageUrl(url);
+                            if (!isValid) {
+                                console.warn('URL base64 tronquée détectée et ignorée:', url.substring(0, 100) + '...');
+                            }
+                            return isValid;
+                        }
+                        return true; // Les URLs HTTP sont toujours valides
+                    });
+                    
+                    // Si toutes les URLs sont invalides (tronquées), NE PAS réinitialiser la galerie
+                    // Cela préserve les images existantes dans l'éditeur
+                    if (validUrls.length === 0 && galerieArray.length > 0) {
+                        console.warn('Toutes les URLs de la galerie semblent tronquées. Conservation de la galerie existante.');
+                        return; // Sortir sans modifier la galerie
+                    }
+                    
+                    // Supprimer seulement les éléments de galerie existants (pas le bouton "Ajouter une photo")
+                    var existing = grid.querySelectorAll('.masonry-item:not(:first-child)');
+                    for (var i = 0; i < existing.length; i++) existing[i].remove();
+                    
+                    // Ajouter toutes les images valides seulement si on en a
+                    if (validUrls.length > 0) {
+                        validUrls.forEach(function(url) {
+                            if (!url) return;
+                            var div = document.createElement('div');
+                            div.className = 'masonry-item relative group rounded-lg overflow-hidden cursor-zoom-in';
+                            div.onclick = function() { openLightbox(this); };
+                            // Créer l'élément img séparément pour mieux gérer les URLs base64 longues
+                            var img = document.createElement('img');
+                            img.src = url;
+                            img.className = 'w-full h-auto object-cover transform transition-transform duration-500 group-hover:scale-110';
+                            img.alt = 'Galerie';
+                            img.onerror = function() {
+                                // Supprimer l'élément parent si l'image ne charge pas
+                                console.warn('Erreur de chargement d\'image dans la galerie:', url.substring(0, 100));
+                                if (this.parentElement) {
+                                    this.parentElement.remove();
+                                }
+                            };
+                            img.onload = function() {
+                                // Vérifier que l'image s'est bien chargée (pour déboguer)
+                                if (this.naturalWidth === 0 || this.naturalHeight === 0) {
+                                    console.warn('Image chargée mais dimensions invalides:', url.substring(0, 100));
+                                }
+                            };
+                            div.appendChild(img);
+                            // Ajouter l'overlay et le bouton de suppression
+                            var overlay = document.createElement('div');
+                            overlay.className = 'absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors';
+                            div.appendChild(overlay);
+                            var removeBtn = document.createElement('button');
+                            removeBtn.type = 'button';
+                            removeBtn.className = 'edit-only absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity';
+                            removeBtn.onclick = function(e) {
+                                e.stopPropagation();
+                                if (div.parentElement) div.parentElement.removeChild(div);
+                            };
+                            removeBtn.innerHTML = '<iconify-icon icon="lucide:x" width="12"></iconify-icon>';
+                            div.appendChild(removeBtn);
+                            grid.appendChild(div);
+                        });
+                    }
+                }
+            }
+        }
+
+        function applyPrestations(list) {
+            if (!Array.isArray(list) || list.length === 0) {
+                renderPrestations([]);
+                return;
+            }
+            var prestations = list.map(function(p) {
+                var dureeH = p.duree_heure != null ? String(p.duree_heure) : (p.Duree_heure != null ? String(p.Duree_heure) : '');
+                var dureeM = p.duree_min != null ? String(p.duree_min) : (p.Duree_min != null ? String(p.Duree_min) : '');
+                var dureeStr = (dureeH || dureeM) ? (dureeH && dureeM ? dureeH + 'h' + dureeM : (dureeH ? dureeH + 'h' : dureeM + ' min')) : '';
+                var isLocal = (p.is_local || p.Is_local) === true || (p.is_local || p.Is_local) === 'true';
+                var lieu = isLocal ? (p.adresse || p.Adresse || '') : 'À domicile';
+                return {
+                    nom: p.nom || p.Nom || '',
+                    prix: p.prix != null ? String(p.prix) : (p.Prix != null ? String(p.Prix) : ''),
+                    duree: dureeStr,
+                    personne: p.personne || p.Personne || '',
+                    categorie: p.categorie || p.Categorie || 'Prestations',
+                    lieu: lieu
+                };
+            });
+            renderPrestations(prestations);
+        }
+
+        function escapeHtml(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
+        function renderPrestations(prestations) {
+            var root = EDITOR_ROOT;
+            var container = (root.getElementById && root.getElementById('prestations-categories')) || document.getElementById('prestations-categories');
+            var emptyEl = (root.getElementById && root.getElementById('prestations-empty')) || document.getElementById('prestations-empty');
+            if (!container) return;
+            container.innerHTML = '';
+            if (!prestations || prestations.length === 0) {
+                if (emptyEl) emptyEl.classList.remove('hidden');
+                return;
+            }
+            if (emptyEl) emptyEl.classList.add('hidden');
+            var byCat = {};
+            prestations.forEach(function(p) {
+                var cat = p.categorie || 'Prestations';
+                if (!byCat[cat]) byCat[cat] = [];
+                byCat[cat].push(p);
+            });
+            Object.keys(byCat).forEach(function(cat) {
+                var block = document.createElement('div');
+                block.className = 'mb-8';
+                block.innerHTML = '<h4 class="font-medium theme-text-primary mb-4 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> ' + escapeHtml(cat) + '</h4><div class="space-y-3"></div>';
+                var list = block.querySelector('.space-y-3');
+                byCat[cat].forEach(function(p) {
+                    var card = document.createElement('div');
+                    card.className = 'group flex items-center justify-between p-4 rounded-xl border theme-border theme-bg-section hover:border-gray-300 transition-all cursor-default';
+                    var lieuHtml = (p.lieu !== undefined && p.lieu !== '') ? '<span class="flex items-center gap-1"><iconify-icon icon="lucide:map-pin" width="12"></iconify-icon> ' + escapeHtml(p.lieu) + '</span>' : '';
+                    var metaHtml = '<div class="flex items-center gap-4 text-xs theme-text-secondary flex-wrap"><span class="flex items-center gap-1"><iconify-icon icon="lucide:clock" width="12"></iconify-icon> ' + escapeHtml(p.duree) + '</span>' + (p.personne ? '<span class="flex items-center gap-1"><iconify-icon icon="lucide:user" width="12"></iconify-icon> ' + escapeHtml(p.personne) + '</span>' : '') + lieuHtml + '</div>';
+                    card.innerHTML = '<div class="flex-1"><div class="flex items-baseline gap-3 mb-1"><span class="font-medium theme-text-primary">' + escapeHtml(p.nom) + '</span><span class="text-sm font-semibold theme-text-secondary">' + escapeHtml(p.prix) + (p.prix && !/€|euro/i.test(p.prix) ? ' €' : '') + '</span></div>' + metaHtml + '</div><button class="ml-4 px-4 py-2 theme-btn text-xs font-medium rounded-lg shadow-sm flex-shrink-0">Réserver</button>';
+                    list.appendChild(card);
+                });
+                container.appendChild(block);
+            });
+        }
+
+        function applyAvis(list) {
+            var root = EDITOR_ROOT;
+            var emptyEl = (root.getElementById && root.getElementById('reviews-empty-state')) || document.getElementById('reviews-empty-state');
+            var dynamicEl = (root.getElementById && root.getElementById('reviews-dynamic-cards')) || document.getElementById('reviews-dynamic-cards');
+            if (!dynamicEl) return;
+            dynamicEl.innerHTML = '';
+            var hasAvis = Array.isArray(list) && list.length > 0;
+            if (emptyEl) emptyEl.classList.toggle('hidden', hasAvis);
+            if (!hasAvis) {
+                dynamicEl.classList.add('hidden');
+                return;
+            }
+            dynamicEl.classList.remove('hidden');
+            list.forEach(function(av) {
+                var nom = av.nom != null ? av.nom : (av.Nom != null ? av.Nom : '');
+                var content = av.content != null ? av.content : (av.Content != null ? av.Content : (av.avis != null ? av.avis : ''));
+                var etoile = parseInt(av.etoile != null ? av.etoile : av.Etoile, 10) || 5;
+                var card = document.createElement('div');
+                card.className = 'bg-white p-5 rounded-xl shadow-sm border theme-border';
+                var stars = '';
+                for (var i = 0; i < 5; i++) stars += '<iconify-icon icon="lucide:star" width="14" class="' + (i < etoile ? 'text-yellow-400' : 'text-gray-200') + '"></iconify-icon>';
+                var initiales = (nom || '?').split(/\s+/).map(function(w) { return w.charAt(0); }).join('').toUpperCase().slice(0, 2);
+                card.innerHTML = '<div class="flex items-center gap-1 mb-2">' + stars + '</div><p class="text-sm theme-text-secondary mb-3 italic">' + escapeHtml(content) + '</p><div class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-500">' + escapeHtml(initiales) + '</div><span class="text-xs font-medium theme-text-primary">' + escapeHtml(nom) + '</span></div>';
+                dynamicEl.appendChild(card);
+            });
+        }
+
+        function initFromVariables() {
+            setEditableMode(true);
+            applyWebsiteDetails(window.WEBSITE_DETAILS || {});
+            applyPrestations(window.PRESTATIONS_LIST || []);
+            applyAvis(window.AVIS_LIST || []);
+        }
+
+        // Thèmes
+        var themes = {
+            balma: { bgPage: '#ffffff', bgSection: '#f9fafb', textPrimary: '#111827', textSecondary: '#6b7280', primaryColor: '#C9A227', primaryHover: '#B7950B', primaryLight: '#FEFCE8', borderColor: '#e5e7eb', btnText: '#ffffff' },
+            onyx: { bgPage: '#ffffff', bgSection: '#f3f4f6', textPrimary: '#000000', textSecondary: '#4b5563', primaryColor: '#000000', primaryHover: '#333333', primaryLight: '#F3F4F6', borderColor: '#e5e7eb', btnText: '#ffffff' },
+            poudre: { bgPage: '#FFF5F5', bgSection: '#FFF0F0', textPrimary: '#5C3D3D', textSecondary: '#9C7A7A', primaryColor: '#E5B8B7', primaryHover: '#D4A09F', primaryLight: '#FFF0F0', borderColor: '#F2DEDE', btnText: '#5C3D3D' },
+            vegetal: { bgPage: '#F7F9F7', bgSection: '#EFF5EF', textPrimary: '#2C3E30', textSecondary: '#6B7F70', primaryColor: '#5D7A64', primaryHover: '#4A6350', primaryLight: '#EFF5EF', borderColor: '#DDE6DE', btnText: '#ffffff' },
+            lagon: { bgPage: '#F0F7FA', bgSection: '#E6F2F7', textPrimary: '#1E3A47', textSecondary: '#607D8B', primaryColor: '#4A8CA6', primaryHover: '#397086', primaryLight: '#E6F2F7', borderColor: '#CFE2EA', btnText: '#ffffff' },
+            terre: { bgPage: '#FAF7F5', bgSection: '#F5EFEA', textPrimary: '#4A3228', textSecondary: '#8C7368', primaryColor: '#C27A59', primaryHover: '#A66648', primaryLight: '#F5EFEA', borderColor: '#E6DCD5', btnText: '#ffffff' },
+            nude: { bgPage: '#FAFAF9', bgSection: '#F5F5F4', textPrimary: '#292524', textSecondary: '#78716c', primaryColor: '#A8A29E', primaryHover: '#78716c', primaryLight: '#F5F5F4', borderColor: '#e7e5e4', btnText: '#ffffff' }
+        };
+
+        function setTheme(themeName) {
+            var t = themes[themeName];
+            if (!t) return;
+            currentTheme = themeName;
+            var root = document.documentElement;
+            root.style.setProperty('--bg-page', t.bgPage);
+            root.style.setProperty('--bg-section', t.bgSection);
+            root.style.setProperty('--text-primary', t.textPrimary);
+            root.style.setProperty('--text-secondary', t.textSecondary);
+            root.style.setProperty('--primary-color', t.primaryColor);
+            root.style.setProperty('--primary-hover', t.primaryHover);
+            root.style.setProperty('--primary-light', t.primaryLight);
+            root.style.setProperty('--border-color', t.borderColor);
+            root.style.setProperty('--btn-text', t.btnText);
+            var themeInput = document.getElementById('Theme');
+            if (themeInput) themeInput.value = themeName;
+            var preview = document.getElementById('site-preview');
+            if (preview) { preview.style.opacity = '0.8'; setTimeout(function() { preview.style.opacity = '1'; }, 150); }
+        }
+
+        function handleImageUpload(event, elId, isBg, placeholderId) {
+            var file = event.target.files[0];
+            if (!file) return;
+            
+            // Définir les paramètres de compression selon le type d'image
+            var maxWidth, maxHeight, quality;
+            if (elId === 'Logo') {
+                maxWidth = 400;
+                maxHeight = 400;
+                quality = 0.9; // Logo : qualité plus élevée, taille plus petite
+            } else if (elId === 'Banniere') {
+                maxWidth = 2000;
+                maxHeight = 1200;
+                quality = 0.85; // Bannière : taille moyenne, bonne qualité
+            } else if (elId === 'Photo_about') {
+                maxWidth = 800;
+                maxHeight = 1000;
+                quality = 0.85; // Photo about : taille moyenne
+            } else {
+                maxWidth = 1200;
+                maxHeight = 1200;
+                quality = 0.8; // Par défaut
+            }
+            
+            // Compresser l'image et la stocker en base64 dans le DOM (sera récupérée via getWebsiteData())
+            compressImage(file, maxWidth, maxHeight, quality).then(function(compressedDataUrl) {
+                var el = document.getElementById(elId);
+                if (!el) return;
+                if (isBg) {
+                    el.style.backgroundImage = "url('" + compressedDataUrl + "')";
+                } else {
+                    el.src = compressedDataUrl;
+                    el.classList.remove('hidden');
+                    if (placeholderId) {
+                        var ph = document.getElementById(placeholderId);
+                        if (ph) ph.classList.add('hidden');
+                    }
+                    if (elId === 'Logo') {
+                        var btn = document.getElementById('Logo_remove');
+                        if (btn) btn.classList.remove('hidden');
+                    } else if (elId === 'Photo_about') {
+                        var btn = document.getElementById('Photo_about_remove');
+                        if (btn) btn.classList.remove('hidden');
+                    }
+                }
+            }).catch(function(error) {
+                console.error('Erreur lors de la compression de l\'image:', error);
+                // En cas d'erreur, utiliser l'image originale en base64 (fallback)
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var src = e.target.result;
+                    var el = document.getElementById(elId);
+                    if (!el) return;
+                    if (isBg) {
+                        el.style.backgroundImage = "url('" + src + "')";
+                    } else {
+                        el.src = src;
+                        el.classList.remove('hidden');
+                        if (placeholderId) {
+                            var ph = document.getElementById(placeholderId);
+                            if (ph) ph.classList.add('hidden');
+                        }
+                        if (elId === 'Logo') {
+                            var btn = document.getElementById('Logo_remove');
+                            if (btn) btn.classList.remove('hidden');
+                        } else if (elId === 'Photo_about') {
+                            var btn = document.getElementById('Photo_about_remove');
+                            if (btn) btn.classList.remove('hidden');
+                        }
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeLogo() {
+            var logo = document.getElementById('Logo');
+            var ph = document.getElementById('Logo_placeholder');
+            var btn = document.getElementById('Logo_remove');
+            var input = document.getElementById('Logo_file');
+            if (logo) { logo.removeAttribute('src'); logo.classList.add('hidden'); }
+            if (ph) ph.classList.remove('hidden');
+            if (btn) btn.classList.add('hidden');
+            if (input) input.value = '';
+        }
+
+        function removeAboutPhoto() {
+            var img = document.getElementById('Photo_about');
+            var ph = document.getElementById('Photo_about_placeholder');
+            var btn = document.getElementById('Photo_about_remove');
+            var input = document.getElementById('Photo_about_file');
+            if (img) { img.removeAttribute('src'); img.classList.add('hidden'); }
+            if (ph) ph.classList.remove('hidden');
+            if (btn) btn.classList.add('hidden');
+            if (input) input.value = '';
+        }
+
+        function compressImage(file, maxWidth, maxHeight, quality) {
+            return new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = new Image();
+                    img.onload = function() {
+                        var canvas = document.createElement('canvas');
+                        var ctx = canvas.getContext('2d');
+                        
+                        // Calculer les nouvelles dimensions en conservant le ratio
+                        var width = img.width;
+                        var height = img.height;
+                        
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height = (height * maxWidth) / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width = (width * maxHeight) / height;
+                                height = maxHeight;
+                            }
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        // Dessiner l'image redimensionnée
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Convertir en base64 avec compression
+                        var compressedDataUrl = canvas.toDataURL('image/jpeg', quality || 0.8);
+                        resolve(compressedDataUrl);
+                    };
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function addToGallery(event) {
+            var files = event.target.files;
+            if (!files || files.length === 0) return;
+            var grid = document.getElementById('Galerie');
+            if (!grid) return;
+            var firstCell = grid.querySelector('.masonry-item');
+            
+            Array.prototype.forEach.call(files, function(file) {
+                // Fonction helper pour créer un élément de galerie
+                function createGalleryItem(imageSrc) {
+                    var div = document.createElement('div');
+                    div.className = 'masonry-item relative group rounded-lg overflow-hidden cursor-zoom-in';
+                    div.onclick = function() { openLightbox(this); };
+                    
+                    // Créer l'élément img séparément pour mieux gérer les URLs base64
+                    var img = document.createElement('img');
+                    img.src = imageSrc;
+                    img.className = 'w-full h-auto object-cover transform transition-transform duration-500 group-hover:scale-110';
+                    img.alt = 'Galerie';
+                    img.onerror = function() {
+                        // Supprimer l'élément parent si l'image ne charge pas
+                        if (this.parentElement) {
+                            this.parentElement.remove();
+                        }
+                    };
+                    img.onload = function() {
+                        // Vérifier que l'image s'est bien chargée
+                        if (this.naturalWidth === 0 || this.naturalHeight === 0) {
+                            console.warn('Image chargée mais dimensions invalides');
+                        }
+                    };
+                    div.appendChild(img);
+                    
+                    // Ajouter l'overlay et le bouton de suppression
+                    var overlay = document.createElement('div');
+                    overlay.className = 'absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors';
+                    div.appendChild(overlay);
+                    
+                    var removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'edit-only absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity';
+                    removeBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        if (div.parentElement) div.parentElement.removeChild(div);
+                    };
+                    removeBtn.innerHTML = '<iconify-icon icon="lucide:x" width="12"></iconify-icon>';
+                    div.appendChild(removeBtn);
+                    
+                    return div;
+                }
+                
+                // Compresser l'image et la stocker en base64 dans le DOM (sera récupérée via getWebsiteData())
+                // Compression très agressive pour la galerie : 800x800 max, qualité 60% pour éviter les erreurs "URI Too Long" dans Bubble
+                compressImage(file, 800, 800, 0.6).then(function(compressedDataUrl) {
+                    console.log('DEBUG addToGallery: Image compressée, longueur URL:', compressedDataUrl.length, 'preview:', compressedDataUrl.substring(0, 50) + '...');
+                    var div = createGalleryItem(compressedDataUrl);
+                    // Vérifier que l'image a bien été créée avec la bonne source
+                    var img = div.querySelector('img');
+                    if (img) {
+                        console.log('DEBUG addToGallery: Image créée dans le DOM, src length:', img.src ? img.src.length : 0, 'match:', img.src === compressedDataUrl);
+                    }
+                    grid.insertBefore(div, firstCell ? firstCell.nextSibling : null);
+                }).catch(function(error) {
+                    console.error('Erreur lors de la compression de l\'image:', error);
+                    // En cas d'erreur, utiliser l'image originale en base64 (fallback)
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        var div = createGalleryItem(e.target.result);
+                        grid.insertBefore(div, firstCell ? firstCell.nextSibling : null);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+            event.target.value = '';
+        }
+
+        function openLightbox(el) {
+            var img = el.querySelector('img');
+            if (img) {
+                var lb = document.getElementById('lightbox');
+                var lbImg = document.getElementById('lightbox-img');
+                if (lbImg) lbImg.src = img.src;
+                if (lb) lb.classList.remove('hidden');
+            }
+        }
+
+        function toggleSection(contentId, checkbox) {
+            var content = document.getElementById(contentId);
+            if (!content) return;
+            if (checkbox.checked) content.classList.remove('opacity-25', 'pointer-events-none', 'grayscale');
+            else content.classList.add('opacity-25', 'pointer-events-none', 'grayscale');
+        }
+
+        function getWebsiteData() {
+            var root = EDITOR_ROOT;
+            var byId = root.getElementById || function(id) { return root.querySelector('#' + id); };
+
+            var titreEl = byId.call(root, 'Titre');
+            var descEl = byId.call(root, 'Description');
+            var logoEl = byId.call(root, 'Logo');
+            var photoAboutEl = byId.call(root, 'Photo_about');
+            var banniereEl = byId.call(root, 'Banniere');
+            var texteAboutEl = byId.call(root, 'Texte_about');
+            var themeEl = byId.call(root, 'Theme');
+            var aboutCheck = byId.call(root, 'Section_about_visible');
+            var avisCheck = byId.call(root, 'Section_avis_visible');
+            var galerieCheck = byId.call(root, 'Section_galerie_visible');
+            var grid = byId.call(root, 'Galerie');
+
+            // Récupération des URLs
+            var bannerUrl = '';
+            if (banniereEl && banniereEl.style.backgroundImage && banniereEl.style.backgroundImage.indexOf('url') === 0) {
+                bannerUrl = banniereEl.style.backgroundImage.replace(/^url\(['"]?|['"]?\)$/g, '');
+            }
+            var logoUrl = (logoEl && !logoEl.classList.contains('hidden') && logoEl.src) ? logoEl.src : '';
+            var photoAboutUrl = (photoAboutEl && !photoAboutEl.classList.contains('hidden') && photoAboutEl.src) ? photoAboutEl.src : '';
+            console.log('DEBUG Photo_about: URL récupérée:', photoAboutUrl ? (photoAboutUrl.substring(0, 50) + '... (' + photoAboutUrl.length + ' chars)') : 'vide');
+            
+            // Galerie : tableau d'URLs (exclure le bouton "Ajouter une photo" qui est le premier enfant)
+            // Récupération simplifiée similaire à Photo_about pour éviter les problèmes de validation
+            var galerieUrls = [];
+            if (grid) {
+                // Récupérer seulement les images dans les masonry-item qui ne sont pas le bouton "Ajouter une photo"
+                // Le bouton est le premier enfant, donc on prend tous les autres
+                var items = grid.querySelectorAll('.masonry-item:not(:first-child) img');
+                console.log('DEBUG Galerie: Nombre d\'images trouvées:', items.length);
+                for (var i = 0; i < items.length; i++) {
+                    var img = items[i];
+                    var src = img.src;
+                    
+                    console.log('DEBUG Galerie: Image', i, '- src type:', typeof src, '- src length:', src ? src.length : 0, '- starts with data:image:', src ? src.indexOf('data:image') === 0 : false);
+                    
+                    // Validation simplifiée similaire à Photo_about : accepter toute URL non vide
+                    // Exclure seulement les valeurs manifestement invalides
+                    if (src && 
+                        typeof src === 'string' &&
+                        src.trim() !== '' &&
+                        src !== 'about:blank' &&
+                        src.toLowerCase() !== 'galerie') {
+                        galerieUrls.push(src);
+                        console.log('DEBUG Galerie: URL acceptée, longueur:', src.length);
+                    } else {
+                        console.warn('DEBUG Galerie: URL rejetée:', {
+                            hasSrc: !!src,
+                            isString: typeof src === 'string',
+                            notBlank: src !== 'about:blank',
+                            notEmpty: src ? src.trim() !== '' : false,
+                            notGalerie: src ? src.toLowerCase() !== 'galerie' : false,
+                            srcPreview: src ? src.substring(0, 100) : 'null'
+                        });
+                    }
+                }
+            }
+            
+            // Sections Displayed : seulement celles avec visible=yes (checkbox checked)
+            var sectionsDisplay = [];
+            if (aboutCheck && aboutCheck.checked) sectionsDisplay.push('about');
+            if (avisCheck && avisCheck.checked) sectionsDisplay.push('avis');
+            if (galerieCheck && galerieCheck.checked) sectionsDisplay.push('galerie');
+
+            return {
+                Titre: titreEl ? titreEl.textContent.trim() : '',
+                Description: descEl ? descEl.textContent.trim() : '',
+                Logo: logoUrl,
+                Photo_about: photoAboutUrl,
+                Banniere: bannerUrl,
+                Texte_about: texteAboutEl ? texteAboutEl.textContent.trim() : '',
+                Theme: themeEl ? themeEl.value : currentTheme,
+                Sections_display: sectionsDisplay,
+                Galerie: galerieUrls
+            };
+        }
+
+        function applyWebsiteDataFromString(websiteJson, prestationsJson, avisJson) {
+            try {
+                if (websiteJson != null && websiteJson !== '') {
+                    window.WEBSITE_DETAILS = typeof websiteJson === 'string' ? JSON.parse(websiteJson) : websiteJson;
+                }
+            } catch (e) {}
+            try {
+                if (prestationsJson != null && prestationsJson !== '') {
+                    window.PRESTATIONS_LIST = typeof prestationsJson === 'string' ? JSON.parse(prestationsJson) : prestationsJson;
+                }
+            } catch (e) {}
+            try {
+                if (avisJson != null && avisJson !== '') {
+                    window.AVIS_LIST = typeof avisJson === 'string' ? JSON.parse(avisJson) : avisJson;
+                }
+            } catch (e) {}
+            initFromVariables();
+        }
+
+        // Envoie les données vers Bubble via bubble_fn_websiteValue
+        // Format JSON avec les champs : Titre, Description, Logo, Photo_about, Banniere, Texte_about, Theme, Sections_display, Galerie
+        function sendDataToBubble() {
+            var payload = getWebsiteData();
+            
+            // Log pour déboguer : vérifier que les URLs de la galerie sont bien présentes
+            console.log('Données envoyées à Bubble:', {
+                galerieCount: payload.Galerie ? payload.Galerie.length : 0,
+                galerieUrls: payload.Galerie ? payload.Galerie.map(function(url) { 
+                    return url.substring(0, 50) + '...' + (url.length > 50 ? ' (' + url.length + ' chars)' : '');
+                }) : []
+            });
+            
+            // Vérifier que toutes les URLs base64 sont complètes avant l'envoi
+            // Avertir si les URLs sont trop longues (risque de troncature dans Bubble)
+            if (payload.Galerie && Array.isArray(payload.Galerie)) {
+                var MAX_URL_LENGTH = 50000; // Limite approximative pour éviter les erreurs "URI Too Long"
+                payload.Galerie = payload.Galerie.map(function(url) {
+                    if (typeof url === 'string' && url.indexOf('data:image') === 0) {
+                        // Vérifier la longueur de l'URL
+                        if (url.length > MAX_URL_LENGTH) {
+                            console.error('ATTENTION: URL base64 trop longue (' + url.length + ' caractères). Risque de troncature dans Bubble.');
+                        }
+                        // Vérifier que l'URL base64 est complète (doit se terminer par des caractères base64 valides)
+                        // Les URLs base64 complètes se terminent généralement par =, ==, ou ===
+                        if (!url.match(/data:image\/[^;]+;base64,[A-Za-z0-9+\/]+={0,3}$/)) {
+                            console.warn('URL base64 potentiellement incomplète détectée:', url.substring(0, 100));
+                        }
+                    }
+                    return url;
+                });
+            }
+            
+            var value = JSON.stringify(payload);
+            
+            // Vérifier que le JSON est valide et pas tronqué
+            try {
+                var parsed = JSON.parse(value);
+                if (!parsed.Galerie || parsed.Galerie.length !== (payload.Galerie ? payload.Galerie.length : 0)) {
+                    console.error('Erreur: Le JSON semble tronqué ou les données de galerie sont perdues');
+                }
+            } catch (e) {
+                console.error('Erreur: Le JSON généré n\'est pas valide:', e);
+            }
+            try {
+                if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'balma-editor-data', payload: payload }, '*');
+                // Fonction principale : bubble_fn_websiteValue (créée par l'élément "Javascript to Bubble" de Toolbox)
+                if (typeof window.bubble_fn_websiteValue === 'function') {
+                    window.bubble_fn_websiteValue(value);
+                } else if (typeof window.bubble_fn_editorData === 'function') {
+                    window.bubble_fn_editorData(value);
+                }
+            } catch (e) { 
+                console.error('Erreur lors de l\'envoi à Bubble:', e);
+                console.warn('sendDataToBubble:', e); 
+            }
+        }
+
+        window.getWebsiteData = getWebsiteData;
+        window.applyWebsiteDataFromString = applyWebsiteDataFromString;
+        window.sendDataToBubble = sendDataToBubble;
+
+        function isEditorInDOM() { return !!document.getElementById('site-preview'); }
+        function boot() {
+            if (isEditorInDOM()) initFromVariables();
+            else {
+                var t = setTimeout(function() {
+                    if (isEditorInDOM()) initFromVariables();
+                }, 100);
+                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function() { if (isEditorInDOM()) initFromVariables(); });
+            }
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+        else boot();
+
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'applyWebsiteData' && typeof event.data.data === 'string') {
+                try {
+                    var d = JSON.parse(event.data.data);
+                    applyWebsiteDataFromString(d.website, d.prestations, d.avis);
+                } catch (e) {
+                    applyWebsiteDataFromString(event.data.data, null, null);
+                }
+            }
+            if (event.data && event.data.type === 'balma-get-editor-data') {
+                try {
+                    var payload = getWebsiteData();
+                    event.source.postMessage({ type: 'balma-editor-data', payload: payload }, event.origin || '*');
+                } catch (err) {
+                    event.source.postMessage({ type: 'balma-editor-data-error', error: String(err && err.message) }, '*');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
