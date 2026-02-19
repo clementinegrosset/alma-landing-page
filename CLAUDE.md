@@ -17,7 +17,7 @@ Balma is a showcase (vitrine) site for a booking and management platform dedicat
 
 - **Cloudflare Pages Functions** in `functions/api/`
 - **Waitlist API** (`/api/waitlist`): Receives form submissions and saves to Airtable
-- **Environment variables** (`.dev.vars` for local, Cloudflare dashboard for prod): `AIRTABLE_API_KEY`, `AIRTABLE_BASE_ID`, `AIRTABLE_TABLE_NAME`
+- **Environment variables** (`.dev.vars` for local, Cloudflare dashboard for prod): `AIRTABLE_API_KEY`, `AIRTABLE_BASE_ID`, `AIRTABLE_TABLE_NAME`, `BREVO_API_KEY`
 
 ## Development
 

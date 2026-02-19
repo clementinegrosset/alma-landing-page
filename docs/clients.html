@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balma - Clients</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Iconify Icons -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* Polices */
+        .font-geist { font-family: 'Inter', sans-serif; }
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#F4D03F',
+                            500: '#C9A227',
+                            600: '#B7950B',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- 
+    =======================================================================
+    SECTION VARIABLES (DONNÉES BUBBLE)
+    =======================================================================
+    -->
+    <script>
+        // =====================================================
+        // VARIABLES À REMPLIR AVEC VOS DONNÉES BUBBLE
+        // =====================================================
+
+        // ── CLIENTS ──
+        // Format : {"id"="...","nom_complet"="...","mail"="...","tel"="...","bookings"="...","depenses"="...","last_visite"="..."};;{...}
+        var Clients = '{"id"="1765999471084x708893093219532800","nom_complet"="","mail"="clementine.grosset@gmail.com","tel"="","bookings"="1","depenses"="200","last_visite"="Jan 12, 2026 9:00 am"};;{"id"="1765999949724x153877409397997570","nom_complet"="","mail"="clementine.grosset+test@gmail.com","tel"="","bookings"="0","depenses"="","last_visite"=""};;{"id"="1766047966880x224957081975521280","nom_complet"="Clémentine Grosset","mail"="clementine.grosset+test2@gmail.com","tel"="","bookings"="1","depenses"="3600","last_visite"="Apr 22, 2026 9:00 am"};;{"id"="1766048131187x811085958622216200","nom_complet"="","mail"="likjh@mm.co","tel"="","bookings"="1","depenses"="2588","last_visite"="Feb 23, 2026 9:00 am"};;{"id"="1766071887217x838061946560839700","nom_complet"="","mail"="asze@knjas.xo","tel"="","bookings"="1","depenses"="1000","last_visite"="Jan 24, 2026 9:00 am"}';
+
+        // =====================================================
+        // NE PAS MODIFIER EN DESSOUS
+        // Parsing automatique des données
+        // =====================================================
+
+        // Formatage des nombres : 1192 → "1,192"
+        function formatNumber(val) {
+            var n = parseFloat(String(val).replace(/[^0-9.\-]/g, ''));
+            if (isNaN(n)) return val;
+            return n.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        }
+
+        // Parse les clients depuis la variable Clients
+        function parseClients(raw) {
+            if (!raw || raw.trim() === "" || raw.indexOf("XXX") !== -1) return [];
+            
+            return raw.split(";;").map(function(item) {
+                // Parser chaque objet qui est au format {"key"="value","key2"="value2"}
+                var obj = {};
+                var matches = item.match(/"([^"]+)"="([^"]*)"/g);
+                
+                if (matches) {
+                    matches.forEach(function(match) {
+                        var parts = match.match(/"([^"]+)"="([^"]*)"/);
+                        if (parts && parts.length === 3) {
+                            var key = parts[1];
+                            var value = parts[2];
+                            obj[key] = value;
+                        }
+                    });
+                }
+                
+                // Extraire les initiales
+                var fullName = obj.nom_complet || "";
+                var nameParts = fullName.split(" ");
+                var initials = nameParts.length >= 2
+                    ? nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)
+                    : (fullName ? fullName.charAt(0).toUpperCase() : (obj.mail ? obj.mail.charAt(0).toUpperCase() : "?"));
+
+                // Parser la date de dernière visite
+                var lastVisitDate = null;
+                if (obj.last_visite && obj.last_visite.trim() !== "") {
+                    lastVisitDate = new Date(obj.last_visite);
+                    if (isNaN(lastVisitDate.getTime())) {
+                        lastVisitDate = null;
+                    }
+                }
+
+                return {
+                    id: obj.id || "",
+                    name: obj.nom_complet || "",
+                    email: obj.mail || "",
+                    tel: obj.tel || "",
+                    bookings: parseInt(obj.bookings) || 0,
+                    depenses: obj.depenses ? parseFloat(obj.depenses) : 0,
+                    lastVisit: lastVisitDate,
+                    initials: initials
+                };
+            });
+        }
+
+        var clientsList = parseClients(Clients).sort(function(a, b) {
+            // Tri par dernière visite (les plus récentes en premier)
+            if (!a.lastVisit && !b.lastVisit) return 0;
+            if (!a.lastVisit) return 1;
+            if (!b.lastVisit) return -1;
+            return b.lastVisit - a.lastVisit;
+        });
+
+        window.clientsData = clientsList;
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-geist antialiased h-screen flex overflow-hidden">
+
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <!-- Contenu principal -->
+        <div class="flex-1 overflow-y-auto space-y-6">
+            
+            <!-- Clients Table Card -->
+            <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+                    <h3 class="font-space font-medium text-gray-900">Clients</h3>
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                            <input type="text" placeholder="Rechercher..." class="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-gold-500 focus:border-gold-500 block w-64 pl-9 pr-2 py-2 outline-none">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                <iconify-icon icon="lucide:search" width="16"></iconify-icon>
+                            </div>
+                        </div>
+                        <button id="btn-export" class="flex items-center justify-center p-2 h-[38px] w-[38px] bg-white border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm focus:ring-2 focus:ring-gold-400/20 focus:border-gold-400 outline-none" title="Exporter">
+                            <iconify-icon icon="lucide:download" width="18"></iconify-icon>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 font-medium">Client</th>
+                                <th scope="col" class="px-6 py-3 font-medium">Téléphone</th>
+                                <th scope="col" class="px-6 py-3 font-medium text-right">Visites</th>
+                                <th scope="col" class="px-6 py-3 font-medium text-right">Total dépensé</th>
+                                <th scope="col" class="px-6 py-3 font-medium text-right">Dernière visite</th>
+                                <th scope="col" class="px-6 py-3 font-medium w-10"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="clients-table-body" class="divide-y divide-gray-100">
+                            <!-- Rows generated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="p-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+                    <span id="pagination-info" class="text-xs text-gray-500">Affichage de <span class="font-medium text-gray-900" id="count-display">0</span> clients</span>
+                    <div class="flex gap-1">
+                        <button class="pagination-prev px-3 py-1 text-xs font-medium text-gray-500 bg-white border border-gray-200 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">Précédent</button>
+                        <button class="pagination-next px-3 py-1 text-xs font-medium text-gray-500 bg-white border border-gray-200 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">Suivant</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.getElementById('clients-table-body');
+            const clients = window.clientsData;
+            const clientsPerPage = 8;
+            let currentPage = 1;
+            
+            // Cache de l'URL de base pour éviter de la recalculer
+            const baseUrl = window.top.location.origin + window.top.location.pathname;
+            
+            // Fonction pour naviguer sans déclencher beforeunload
+            function navigateToClient(clientId) {
+                const params = `?client=${encodeURIComponent(clientId)}&action=show-client`;
+                const newUrl = baseUrl + params;
+                
+                // Utiliser history.pushState qui ne déclenche pas beforeunload
+                try {
+                    window.top.history.pushState({}, '', newUrl);
+                    // Déclencher des événements pour que Bubble détecte le changement
+                    window.top.dispatchEvent(new PopStateEvent('popstate'));
+                    window.top.dispatchEvent(new Event('hashchange'));
+                } catch (e) {
+                    // Fallback si pushState ne fonctionne pas (cross-origin)
+                    window.top.location.href = newUrl;
+                }
+            }
+            
+            // Fonction pour rendre les clients de la page actuelle
+            function renderClients() {
+                const totalPages = Math.ceil(clients.length / clientsPerPage);
+                const startIndex = (currentPage - 1) * clientsPerPage;
+                const endIndex = startIndex + clientsPerPage;
+                const clientsToShow = clients.slice(startIndex, endIndex);
+                
+                // Mettre à jour les boutons de pagination
+                const prevButton = document.querySelector('.pagination-prev');
+                const nextButton = document.querySelector('.pagination-next');
+                
+                if (prevButton) {
+                    prevButton.disabled = currentPage === 1;
+                }
+                if (nextButton) {
+                    nextButton.disabled = currentPage >= totalPages;
+                }
+                
+                // Mettre à jour l'info de pagination
+                const start = clients.length === 0 ? 0 : startIndex + 1;
+                const end = Math.min(endIndex, clients.length);
+                document.getElementById('count-display').textContent = clients.length;
+                document.getElementById('pagination-info').textContent = `Affichage de ${start} à ${end} sur ${clients.length} client(s)`;
+                
+                // Vider le tableau
+                tableBody.innerHTML = '';
+                
+                if (clients.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                                Aucun client trouvé.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                // Créer les lignes pour les clients de la page actuelle
+                clientsToShow.forEach(client => {
+                    const lastVisitDate = client.lastVisit 
+                        ? client.lastVisit.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+                        : '-';
+                    
+                    const row = document.createElement('tr');
+                    row.className = 'bg-white hover:bg-gray-50 transition-colors group cursor-pointer';
+                    
+                    // Attacher le gestionnaire de clic sur toute la ligne
+                    row.addEventListener('click', function(e) {
+                        // Ne pas naviguer si on clique sur le bouton
+                        if (e.target.closest('button')) {
+                            return;
+                        }
+                        navigateToClient(client.id);
+                    });
+                    
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 flex-shrink-0 group-hover:bg-white group-hover:shadow-sm transition-all border border-transparent group-hover:border-gray-200">
+                                    ${client.initials}
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">${client.name || '-'}</p>
+                                    <p class="text-xs text-gray-500">${client.email}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm text-gray-600">${client.tel || '-'}</span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <span class="text-sm text-gray-600">${client.bookings}</span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <span class="text-sm font-medium text-gray-900">${formatNumber(client.depenses)} €</span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <span class="text-sm text-gray-500">${lastVisitDate}</span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <button class="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100">
+                                <iconify-icon icon="lucide:more-horizontal" width="16"></iconify-icon>
+                            </button>
+                        </td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+            }
+            
+            // Gestionnaires de pagination
+            const prevButton = document.querySelector('.pagination-prev');
+            const nextButton = document.querySelector('.pagination-next');
+            
+            if (prevButton) {
+                prevButton.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderClients();
+                    }
+                });
+            }
+            
+            if (nextButton) {
+                nextButton.addEventListener('click', () => {
+                    const totalPages = Math.ceil(clients.length / clientsPerPage);
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderClients();
+                    }
+                });
+            }
+            
+            // Export CSV (compatible Excel)
+            function exportToCSV() {
+                if (clients.length === 0) {
+                    alert('Aucun client à exporter.');
+                    return;
+                }
+
+                // BOM UTF-8 pour que Excel reconnaisse les accents
+                var csvContent = '\uFEFF';
+                // En-têtes
+                csvContent += 'Client;Email;Téléphone;Visites;Total dépensé (€);Dernière visite\n';
+                // Lignes
+                clients.forEach(function(c) {
+                    var name = (c.name || '-').replace(/;/g, ',').replace(/"/g, '""');
+                    var email = (c.email || '-').replace(/;/g, ',');
+                    var tel = (c.tel || '-').replace(/;/g, ',');
+                    var bookings = c.bookings || 0;
+                    var depenses = c.depenses ? c.depenses.toFixed(2).replace('.', ',') : '0,00';
+                    var lastVisit = c.lastVisit
+                        ? c.lastVisit.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                        : '-';
+                    csvContent += name + ';' + email + ';' + tel + ';' + bookings + ';' + depenses + ';' + lastVisit + '\n';
+                });
+
+                var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                var url = URL.createObjectURL(blob);
+                var link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'clients_export_' + new Date().toISOString().slice(0, 10) + '.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+            
+            // Attacher le gestionnaire de clic sur le bouton d'export
+            const exportButton = document.getElementById('btn-export');
+            if (exportButton) {
+                exportButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    exportToCSV();
+                });
+            }
+            
+            // Rendre la première page
+            renderClients();
+        });
+    </script>
+</body>
+</html>

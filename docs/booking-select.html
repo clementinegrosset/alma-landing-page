@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réserver une prestation - Balma</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#F4D03F',
+                            500: '#C9A227',
+                            600: '#B7950B',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        .font-geist { font-family: 'Inter', sans-serif; }
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        
+        .time-slot {
+            transition: all 0.2s ease;
+        }
+        .time-slot:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(201, 162, 39, 0.2);
+        }
+        .time-slot.selected {
+            background-color: #C9A227;
+            color: white;
+        }
+        .time-slot.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-geist text-gray-900 min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Header: Profil professionnel -->
+        <div class="flex items-center gap-4 mb-8">
+            <div class="w-16 h-16 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                <img id="professional-photo" src="" alt="" class="w-full h-full object-cover hidden">
+                <div id="professional-photo-placeholder" class="w-full h-full flex items-center justify-center text-gray-400 text-xl font-space">
+                    <iconify-icon icon="lucide:user" width="32"></iconify-icon>
+                </div>
+            </div>
+            <div>
+                <h1 id="professional-name" class="font-space font-semibold text-xl text-gray-900">Nom du professionnel</h1>
+                <p id="professional-address" class="text-sm text-gray-500 font-geist">Adresse</p>
+            </div>
+        </div>
+
+        <!-- Section 1: Prestation -->
+        <div class="mb-8">
+            <h2 class="font-space font-semibold text-lg text-gray-900 mb-4">1 - Prestation</h2>
+            <div id="prestation-card" class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center justify-between">
+                <div class="flex items-center gap-4 flex-1">
+                    <iconify-icon icon="lucide:map-pin" width="20" class="text-gray-400 flex-shrink-0"></iconify-icon>
+                    <div class="flex-1">
+                        <h3 id="prestation-name" class="font-medium text-gray-900 mb-1">Nom de la prestation</h3>
+                        <p id="prestation-details" class="text-sm text-gray-500">Durée • Prix</p>
+                    </div>
+                </div>
+                <button id="remove-prestation" onclick="removePrestation()" class="text-sm text-gray-500 hover:text-gray-700 underline font-geist">Supprimer</button>
+            </div>
+        </div>
+
+        <!-- Section 2: Sélection de date et heure -->
+        <div>
+            <h2 class="font-space font-semibold text-lg text-gray-900 mb-4">2 - Sélection de la date et heure</h2>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <!-- Navigation -->
+                <div class="flex items-center justify-between mb-6">
+                    <button id="prev-week" onclick="navigateWeek(-1)" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Semaine précédente">
+                        <iconify-icon icon="lucide:chevron-left" width="24"></iconify-icon>
+                    </button>
+                    <div id="week-range" class="text-sm font-medium text-gray-700 font-geist"></div>
+                    <button id="next-week" onclick="navigateWeek(1)" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Semaine suivante">
+                        <iconify-icon icon="lucide:chevron-right" width="24"></iconify-icon>
+                    </button>
+                </div>
+
+                <!-- Dates et créneaux -->
+                <div id="dates-container" class="grid grid-cols-7 gap-4">
+                    <!-- Les dates seront générées dynamiquement -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const DAYS_FR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+        const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+        
+        // ============================================
+        // ⭐ VARIABLES BRUTES : COLLER VOS DONNÉES ICI ⭐
+        // ============================================
+        // Remplacez XXX par vos données au format JSON séparées par ;;
+        // ============================================
+        
+        // ⚠️ COLLER VOS SLOTS ICI (format JSON séparés par ;;)
+        const RAW_SLOTS_DATA = `XXX`;
+        // Format attendu: {"id":"...","date_begin":"ISO","date_end":"ISO"};;{"id":"...","date_begin":"ISO","date_end":"ISO"};;...
+        
+        // ⚠️ COLLER VOS BOOKINGS ICI (format JSON séparés par ;;)
+        const RAW_BOOKINGS_DATA = `XXX`;
+        // Format attendu: {"id":"...","date_begin":"ISO","date_end":"..."};;{"id":"...","date_begin":"ISO","date_end":"..."};;...
+        
+        // ============================================
+        // FIN VARIABLES BRUTES
+        // ============================================
+        
+        // État
+        let currentWeekStart = new Date();
+        let selectedDate = null;
+        let selectedTime = null;
+        let prestation = null;
+        let professional = null;
+        let availableSlots = []; // Format: [{ date: "2026-02-18", start: "09:00", end: "18:00" }, ...]
+        let reservations = []; // Format: [{ date: "2026-02-18", start: "10:00", end: "11:30" }, ...]
+        const maxWeeksAhead = 8; // 2 mois environ
+
+        // Initialisation
+        function init() {
+            // Récupérer les paramètres de l'URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const prestationId = urlParams.get('prestation');
+            
+            // Charger les données (à remplacer par des appels API réels)
+            loadPrestation(prestationId);
+            loadProfessional();
+            loadSlotsAndReservations();
+            
+            // Initialiser la semaine courante
+            currentWeekStart = getWeekStart(new Date());
+            
+            render();
+        }
+
+        function loadPrestation(id) {
+            // TODO: Charger depuis API
+            // Pour l'instant, données de test
+            prestation = {
+                id: id || '1',
+                nom: 'Make up jour',
+                duree_heure: 1,
+                duree_min: 0,
+                prix: '100€'
+            };
+            updatePrestationCard();
+        }
+
+        function loadProfessional() {
+            // TODO: Charger depuis API
+            professional = {
+                nom: 'Willie Groset',
+                adresse: '35 rue des mouettes, 64200 Biarritz',
+                photo: ''
+            };
+            updateProfessionalHeader();
+        }
+
+        // ============================================
+        // ⭐ FONCTION : CHARGEMENT DES DONNÉES ⭐
+        // ============================================
+        // Lit les variables RAW_SLOTS_DATA et RAW_BOOKINGS_DATA définies dans le code
+        // ============================================
+        function loadSlotsAndReservations() {
+            // Lire les variables depuis le code
+            let slotsText = '';
+            let bookingsText = '';
+            
+            if (typeof RAW_SLOTS_DATA !== 'undefined' && RAW_SLOTS_DATA !== 'XXX' && RAW_SLOTS_DATA.trim()) {
+                slotsText = RAW_SLOTS_DATA.trim();
+            }
+            
+            if (typeof RAW_BOOKINGS_DATA !== 'undefined' && RAW_BOOKINGS_DATA !== 'XXX' && RAW_BOOKINGS_DATA.trim()) {
+                bookingsText = RAW_BOOKINGS_DATA.trim();
+            }
+            
+            // Parser les données si disponibles
+            if (slotsText || bookingsText) {
+                parseDataFromText(slotsText, bookingsText);
+            } else {
+                // Aucune donnée disponible
+                availableSlots = [];
+                reservations = [];
+            }
+        }
+        
+        // Fonction pour parser les données depuis du texte brut
+        function parseDataFromText(slotsText, bookingsText) {
+            // ========== PARSING DES SLOTS ==========
+            availableSlots = [];
+            if (slotsText) {
+                try {
+                    const jsonStrings = slotsText.split(';;').filter(s => s.trim());
+                    jsonStrings.forEach(jsonStr => {
+                        try {
+                            const slot = JSON.parse(jsonStr.trim());
+                            if (slot.date_begin && slot.date_end) {
+                                const begin = parseISOToDateAndTime(slot.date_begin);
+                                const end = parseISOToDateAndTime(slot.date_end);
+                                if (begin && end && begin.date === end.date) {
+                                    availableSlots.push({
+                                        date: begin.date,
+                                        start: begin.time,
+                                        end: end.time
+                                    });
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Erreur parsing slot:', e, jsonStr);
+                        }
+                    });
+                } catch (e) {
+                    console.error('Erreur parsing slots:', e);
+                }
+            }
+            
+            // ========== PARSING DES BOOKINGS ==========
+            reservations = [];
+            if (bookingsText) {
+                try {
+                    const jsonStrings = bookingsText.split(';;').filter(s => s.trim());
+                    jsonStrings.forEach(jsonStr => {
+                        try {
+                            const booking = JSON.parse(jsonStr.trim());
+                            if (booking.date_begin) {
+                                const begin = parseISOToDateAndTime(booking.date_begin);
+                                const endTime = parseDateEndToTime(booking.date_end, booking.date_begin);
+                                
+                                if (begin && endTime) {
+                                    reservations.push({
+                                        date: begin.date,
+                                        start: begin.time,
+                                        end: endTime
+                                    });
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Erreur parsing booking:', e, jsonStr);
+                        }
+                    });
+                } catch (e) {
+                    console.error('Erreur parsing bookings:', e);
+                }
+            }
+        }
+
+        function parseISOToDateAndTime(isoString) {
+            // Convertir "2026-01-12T08:00:00.000Z" en { date: "2026-01-12", time: "08:00" }
+            if (!isoString) return null;
+            const date = new Date(isoString);
+            const year = date.getUTCFullYear();
+            const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(date.getUTCDate()).padStart(2, '0');
+            const hours = String(date.getUTCHours()).padStart(2, '0');
+            const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+            return {
+                date: `${year}-${month}-${day}`,
+                time: `${hours}:${minutes}`
+            };
+        }
+
+        function parseDateEndToTime(dateEndString, dateBeginISO) {
+            // Convertir date_end en heure, en utilisant date_begin pour la date si nécessaire
+            // Format peut être: "Jan 12, 2026 11:00 am" ou ISO "2026-01-12T11:00:00.000Z"
+            if (!dateEndString) return null;
+            
+            try {
+                // Essayer de parser comme ISO d'abord
+                if (dateEndString.includes('T') && dateEndString.includes('Z')) {
+                    const parsed = parseISOToDateAndTime(dateEndString);
+                    return parsed ? parsed.time : null;
+                }
+                
+                // Sinon parser comme date formatée
+                const date = new Date(dateEndString);
+                if (isNaN(date.getTime())) return null;
+                
+                // Utiliser les heures locales (ou UTC si on veut être cohérent)
+                // Pour être cohérent avec date_begin qui est en UTC, on utilise UTC
+                const hours = String(date.getUTCHours()).padStart(2, '0');
+                const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+                return `${hours}:${minutes}`;
+            } catch (e) {
+                console.warn('Erreur parsing date_end:', e, dateEndString);
+                return null;
+            }
+        }
+
+
+        function updatePrestationCard() {
+            if (!prestation) return;
+            document.getElementById('prestation-name').textContent = prestation.nom;
+            const duree = `${prestation.duree_heure || 0}h${String(prestation.duree_min || 0).padStart(2, '0')}`;
+            document.getElementById('prestation-details').textContent = `${duree} • ${prestation.prix}`;
+        }
+
+        function updateProfessionalHeader() {
+            if (!professional) return;
+            document.getElementById('professional-name').textContent = professional.nom;
+            document.getElementById('professional-address').textContent = professional.adresse;
+            if (professional.photo) {
+                document.getElementById('professional-photo').src = professional.photo;
+                document.getElementById('professional-photo').classList.remove('hidden');
+                document.getElementById('professional-photo-placeholder').classList.add('hidden');
+            }
+        }
+
+        function removePrestation() {
+            if (confirm('Voulez-vous supprimer cette prestation ?')) {
+                window.history.back();
+            }
+        }
+
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Lundi = début de semaine
+            d.setDate(diff);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+
+        function formatDate(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            return `${date.getFullYear()}-${month}-${day}`;
+        }
+
+        function formatDateDisplay(date) {
+            return `${DAYS_FR[date.getDay()]} ${date.getDate()}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        function navigateWeek(direction) {
+            const newDate = new Date(currentWeekStart);
+            newDate.setDate(newDate.getDate() + (direction * 7));
+            
+            // Vérifier qu'on ne dépasse pas 2 mois
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const maxDate = new Date(today);
+            maxDate.setDate(maxDate.getDate() + (maxWeeksAhead * 7));
+            
+            // Vérifier que la nouvelle semaine de début est dans les limites
+            if (newDate >= today && newDate <= maxDate) {
+                // Vérifier aussi que la fin de semaine ne dépasse pas
+                const weekEnd = new Date(newDate);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+                if (weekEnd <= maxDate) {
+                    currentWeekStart = newDate;
+                    render();
+                }
+            }
+        }
+
+        function getAvailableHoursForDate(dateStr) {
+            // Trouver les slots disponibles pour cette date
+            const slot = availableSlots.find(s => s.date === dateStr);
+            if (!slot) return [];
+
+            // Convertir les heures de début et fin en nombres (décimales)
+            const [startHour, startMin] = slot.start.split(':').map(Number);
+            const [endHour, endMin] = slot.end.split(':').map(Number);
+            const slotStart = startHour + startMin / 60;
+            const slotEnd = endHour + endMin / 60;
+
+            // Trouver les réservations pour cette date
+            const dateReservations = reservations.filter(r => r.date === dateStr);
+            
+            // Durée de la prestation en heures décimales
+            const prestationDuration = (prestation.duree_heure || 1) + (prestation.duree_min || 0) / 60;
+            
+            // Créer un tableau des plages occupées
+            const occupiedRanges = dateReservations.map(res => {
+                const [resStartHour, resStartMin] = res.start.split(':').map(Number);
+                const [resEndHour, resEndMin] = res.end.split(':').map(Number);
+                return {
+                    start: resStartHour + resStartMin / 60,
+                    end: resEndHour + resEndMin / 60
+                };
+            });
+
+            // Générer les heures disponibles
+            const availableHours = [];
+            
+            // Si le slot commence à une demi-heure (ex: 08h30), vérifier cette heure d'abord
+            if (slotStart % 1 === 0.5) {
+                const halfHourStart = Math.floor(slotStart) + 0.5;
+                if (halfHourStart + prestationDuration <= slotEnd) {
+                    let isAvailable = true;
+                    for (const range of occupiedRanges) {
+                        if (halfHourStart < range.end && (halfHourStart + prestationDuration) > range.start) {
+                            isAvailable = false;
+                            break;
+                        }
+                    }
+                    if (isAvailable) {
+                        availableHours.push(halfHourStart);
+                    }
+                }
+            }
+            
+            // Ensuite, parcourir toutes les heures entières possibles
+            const startHourInt = Math.ceil(slotStart);
+            for (let h = startHourInt; h <= Math.floor(slotEnd - prestationDuration); h++) {
+                // Vérifier que cette heure n'est pas dans une réservation
+                let isAvailable = true;
+                
+                // Vérifier que la plage [h, h + prestationDuration] ne chevauche aucune réservation
+                for (const range of occupiedRanges) {
+                    // Si la réservation chevauche notre créneau (même partiellement), on ne peut pas réserver
+                    // Chevauchement si: notre début < fin réservation ET notre fin > début réservation
+                    if (h < range.end && (h + prestationDuration) > range.start) {
+                        isAvailable = false;
+                        break;
+                    }
+                }
+                
+                if (isAvailable) {
+                    availableHours.push(h);
+                }
+            }
+            
+            // Trier les heures pour un affichage cohérent
+            availableHours.sort((a, b) => a - b);
+
+            return availableHours;
+        }
+
+        function render() {
+            // Mettre à jour le titre de la semaine
+            const weekEnd = new Date(currentWeekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Vérifier si on peut naviguer
+            const maxDate = new Date(today);
+            maxDate.setDate(maxDate.getDate() + (maxWeeksAhead * 7));
+            
+            const canGoPrev = currentWeekStart > today;
+            const canGoNext = weekEnd < maxDate;
+            
+            const prevBtn = document.getElementById('prev-week');
+            const nextBtn = document.getElementById('next-week');
+            
+            if (!canGoPrev) {
+                prevBtn.disabled = true;
+                prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                prevBtn.classList.remove('hover:text-gray-600', 'hover:bg-gray-100');
+            } else {
+                prevBtn.disabled = false;
+                prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                prevBtn.classList.add('hover:text-gray-600', 'hover:bg-gray-100');
+            }
+            
+            if (!canGoNext) {
+                nextBtn.disabled = true;
+                nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                nextBtn.classList.remove('hover:text-gray-600', 'hover:bg-gray-100');
+            } else {
+                nextBtn.disabled = false;
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                nextBtn.classList.add('hover:text-gray-600', 'hover:bg-gray-100');
+            }
+            
+            document.getElementById('week-range').textContent = 
+                `${formatDateDisplay(currentWeekStart)} - ${formatDateDisplay(weekEnd)}`;
+
+            // Générer les 7 dates
+            const container = document.getElementById('dates-container');
+            container.innerHTML = '';
+
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(currentWeekStart);
+                date.setDate(date.getDate() + i);
+                const dateStr = formatDate(date);
+                const isToday = formatDate(today) === dateStr;
+                const isPast = date < today;
+                
+                const availableHours = getAvailableHoursForDate(dateStr);
+                
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'flex flex-col';
+                
+                // En-tête de date
+                const dateHeader = document.createElement('div');
+                dateHeader.className = `text-center mb-3 font-medium text-sm ${isToday ? 'text-gold-600' : 'text-gray-700'}`;
+                dateHeader.textContent = formatDateDisplay(date);
+                dayDiv.appendChild(dateHeader);
+                
+                // Créneaux horaires
+                const slotsDiv = document.createElement('div');
+                slotsDiv.className = 'flex flex-col gap-2';
+                
+                if (isPast || availableHours.length === 0) {
+                    slotsDiv.innerHTML = '<p class="text-xs text-gray-400 text-center">Aucun créneau disponible</p>';
+                } else {
+                    availableHours.forEach(hour => {
+                        const slotBtn = document.createElement('button');
+                        const hourInt = Math.floor(hour);
+                        const minutes = Math.round((hour % 1) * 60);
+                        const timeStr = minutes === 0 
+                            ? `${String(hourInt).padStart(2, '0')}h00`
+                            : `${String(hourInt).padStart(2, '0')}h${String(minutes).padStart(2, '0')}`;
+                        slotBtn.textContent = timeStr;
+                        slotBtn.className = 'time-slot px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm font-medium text-gray-700';
+                        slotBtn.onclick = () => selectTime(dateStr, hour, slotBtn);
+                        slotsDiv.appendChild(slotBtn);
+                    });
+                }
+                
+                dayDiv.appendChild(slotsDiv);
+                container.appendChild(dayDiv);
+            }
+        }
+
+        function selectTime(dateStr, hour, buttonElement) {
+            selectedDate = dateStr;
+            selectedTime = hour;
+            
+            // Mettre à jour l'UI
+            document.querySelectorAll('.time-slot').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            buttonElement.classList.add('selected');
+            
+            // TODO: Continuer vers l'étape suivante (formulaire client, etc.)
+            console.log('Sélection:', dateStr, hour);
+        }
+
+        // Initialiser au chargement
+        init();
+    </script>
+</body>
+</html>

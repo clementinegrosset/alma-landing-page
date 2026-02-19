@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balma - Caisse</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Iconify Icons -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* Polices */
+        .font-geist { font-family: 'Inter', sans-serif; }
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#F4D03F',
+                            500: '#C9A227',
+                            600: '#B7950B',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- 
+    =======================================================================
+    SECTION VARIABLES (DONNÉES SIMULÉES)
+    =======================================================================
+    -->
+    <script>
+        // =====================================================
+        // DONNÉES DE CAISSE (CASHFLOWS)
+        // =====================================================
+        // Format texte : une ligne par cashflow, séparateur entre lignes = |
+        // Champs par ligne (séparateur ;;) :
+        //   This cashflow's unique id;;This cashflow's Description;;This cashflow's Moyen de paiement's Display;;This cashflow's Prix;;This cashflow's Type's Display;;This cashflow's Date (ex: 2026-02-15T21:18:20.094Z);;Cash-in/Cash-out
+        var TRANSACTIONS_DATA = "1771190824255x498914039150408300;;Achat matériel;;CB;;288;;Achat Matériel;;2026-02-13T08:00:00.000Z;;Cash-out|1771190876401x899757779956014600;;;;Espèce;;876;;Achat Matériel;;2026-02-25T08:00:00.000Z;;Cash-out|1771501823121x638979881282306000;;aedaze;;Espèce;;100;;Achat Matériel;;2026-02-09T23:00:00.000Z;;Cash-out";
+
+        // =====================================================
+        // PARSING ET CALCULS
+        // =====================================================
+
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount);
+        }
+
+        function formatDate(dateObj) {
+            if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj.getTime())) return '—';
+            return dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function parseTransactions(raw) {
+            if (!raw || raw.trim() === "") return [];
+            var list = raw.split("|").map(function(item) {
+                var f = item.split(";;").map(function(s) { return s.trim(); });
+                var prix = parseFloat(f[3]);
+                var typeDisplay = (f[4] || "").toLowerCase();
+                var cashflowGroup = (f[6] || "").toLowerCase(); // Nouveau champ Cash-in/Cash-out
+                
+                // Déterminer le type à partir du cashflow group
+                var typeInOut = "IN";
+                if (cashflowGroup.indexOf("cash-out") !== -1 || cashflowGroup === "out") {
+                    typeInOut = "OUT";
+                } else if (cashflowGroup.indexOf("cash-in") !== -1 || cashflowGroup === "in") {
+                    typeInOut = "IN";
+                } else {
+                    // Fallback sur l'ancienne logique si le champ n'existe pas
+                    var isOut = typeDisplay.indexOf("sortie") !== -1 || typeDisplay === "out";
+                    var isIn = typeDisplay.indexOf("entrée") !== -1 || typeDisplay === "in";
+                    typeInOut = isOut ? "OUT" : (isIn ? "IN" : (prix >= 0 ? "IN" : "OUT"));
+                }
+                
+                var date = null;
+                if (f[5]) {
+                    date = new Date(f[5]);
+                    if (isNaN(date.getTime())) date = null;
+                }
+                return {
+                    id: f[0],
+                    label: f[1],
+                    paymentMethod: f[2],
+                    amount: prix,
+                    type: f[4],
+                    typeInOut: typeInOut,
+                    date: date
+                };
+            });
+            list.sort(function(a, b) {
+                if (!a.date && !b.date) return 0;
+                if (!a.date) return 1;
+                if (!b.date) return -1;
+                return b.date - a.date;
+            });
+            return list;
+        }
+
+        var allTransactions = parseTransactions(TRANSACTIONS_DATA);
+
+        // Pas de calcul initial global, on le fera dynamiquement
+        window.caisseData = {
+            allTransactions: allTransactions
+        };
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-geist antialiased h-screen flex overflow-hidden">
+
+    <!-- Sidebar (Navigation) - Repris de dashboard.html (simplifié ou identique si besoin) -->
+    <!-- Note: Pour l'instant je ne mets pas la sidebar complète car je ne l'ai pas vue dans le dashboard.html lu (il semblait manquer la sidebar dans le code lu ? Ah non, le code lu était entier mais dashboard.html ne semblait pas avoir de sidebar explicite dans le <body>, juste <main>. Attends, je revérifie dashboard.html... Ah, dashboard.html a juste <main>... C'est bizarre, il n'y a pas de menu ? Peut-être est-ce une iframe dans Bubble qui gère le menu ?
+    
+    Re-vérification du code de dashboard.html :
+    Ligne 354: <body ... flex overflow-hidden">
+    Ligne 357: <main class="flex-1 ...">
+    
+    Il semble qu'il n'y ait PAS de sidebar dans le code de dashboard.html que j'ai lu. C'est probablement une page destinée à être embeddée (iframe) ou alors le menu est manquant.
+    
+    Cependant, la demande est "créer une nouvelle page html dans le même style que les autres". Je vais donc suivre le style de dashboard.html : Header + Contenu.
+    Si dashboard.html est une page complète, elle n'a pas de menu visible dans le code fourni. Je vais supposer que c'est une vue "contenu principal".
+    -->
+
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <!-- Contenu principal -->
+        <div class="flex-1 overflow-y-auto space-y-6">
+
+            <!-- Barre d'outils -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
+                <div class="relative min-w-[160px]">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <iconify-icon icon="lucide:calendar" width="16"></iconify-icon>
+                    </div>
+                    <select id="period-select" class="appearance-none w-full bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium border border-gray-200 rounded-lg pl-10 pr-10 py-2.5 focus:ring-2 focus:ring-gold-400/20 focus:border-gold-400 cursor-pointer outline-none transition-all shadow-sm">
+                        <option value="current_month">Mois en cours</option>
+                        <option value="current_year">Année en cours</option>
+                        <option value="last_year">Année précédente</option>
+                        <option value="all">Tout l'historique</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                        <iconify-icon icon="lucide:chevron-down" width="16"></iconify-icon>
+                    </div>
+                </div>
+                <button type="button" id="btn-new-operation" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-medium text-sm rounded-lg shadow-sm transition-colors focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                    <iconify-icon icon="lucide:plus" width="18"></iconify-icon>
+                    Ajouter une opération
+                </button>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- KPI 1: Caisse Physique (Nouveau) -->
+                <div class="bg-white border border-gray-200 p-5 rounded-2xl relative overflow-hidden group shadow-sm">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <iconify-icon icon="lucide:coins" width="64"></iconify-icon>
+                    </div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="p-2 bg-gold-50 text-gold-600 rounded-lg">
+                            <iconify-icon icon="lucide:coins" width="20"></iconify-icon>
+                        </div>
+                        <span class="text-gray-500 text-sm font-medium">Espèces en Caisse</span>
+                    </div>
+                    <div class="mb-1">
+                        <span id="kpi-cash" class="text-2xl font-bold text-gray-900">--</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-2">
+                        <span class="text-xs text-gray-400">Fond: <span id="kpi-fond">--</span></span>
+                        <button onclick="window.updateFondDeCaisse()" class="text-xs text-gold-600 hover:text-gold-700 font-medium hover:underline flex items-center gap-1">
+                            <iconify-icon icon="lucide:settings-2" width="12"></iconify-icon>
+                            Ajuster
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI 2: Solde Théorique (Global) -->
+                <div class="bg-white border border-gray-200 p-5 rounded-2xl relative overflow-hidden group shadow-sm">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <iconify-icon icon="lucide:wallet" width="64"></iconify-icon>
+                    </div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                            <iconify-icon icon="lucide:scale" width="20"></iconify-icon>
+                        </div>
+                        <span class="text-gray-500 text-sm font-medium">Solde Global</span>
+                    </div>
+                    <div class="mb-1">
+                        <span id="kpi-balance" class="text-2xl font-bold text-gray-900">--</span>
+                    </div>
+                </div>
+
+                <!-- KPI 3: Total Entrées -->
+                <div class="bg-white border border-gray-200 p-5 rounded-2xl relative overflow-hidden group shadow-sm">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <iconify-icon icon="lucide:arrow-down-left" width="64"></iconify-icon>
+                    </div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="p-2 bg-green-50 text-green-600 rounded-lg">
+                            <iconify-icon icon="lucide:arrow-down-left" width="20"></iconify-icon>
+                        </div>
+                        <span class="text-gray-500 text-sm font-medium">Total Entrées</span>
+                    </div>
+                    <div class="mb-1">
+                        <span id="kpi-in" class="text-2xl font-bold text-green-600">--</span>
+                    </div>
+                </div>
+
+                <!-- KPI 4: Total Sorties -->
+                <div class="bg-white border border-gray-200 p-5 rounded-2xl relative overflow-hidden group shadow-sm">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <iconify-icon icon="lucide:arrow-up-right" width="64"></iconify-icon>
+                    </div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="p-2 bg-red-50 text-red-600 rounded-lg">
+                            <iconify-icon icon="lucide:arrow-up-right" width="20"></iconify-icon>
+                        </div>
+                        <span class="text-gray-500 text-sm font-medium">Total Sorties</span>
+                    </div>
+                    <div class="mb-1">
+                        <span id="kpi-out" class="text-2xl font-bold text-red-600">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+                    <h3 class="font-space font-medium text-gray-900">Historique des opérations</h3>
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                            <input type="text" placeholder="Rechercher..." class="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-gold-500 focus:border-gold-500 block w-64 pl-9 pr-2 py-2 outline-none">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                <iconify-icon icon="lucide:search" width="16"></iconify-icon>
+                            </div>
+                        </div>
+                        <button id="btn-export" class="flex items-center justify-center p-2 h-[38px] w-[38px] bg-white border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm focus:ring-2 focus:ring-gold-400/20 focus:border-gold-400 outline-none" title="Exporter en Excel">
+                            <iconify-icon icon="lucide:download" width="18"></iconify-icon>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 font-medium">Date</th>
+                                <th scope="col" class="px-6 py-3 font-medium">Description</th>
+                                <th scope="col" class="px-6 py-3 font-medium">Moyen de paiement</th>
+                                <th scope="col" class="px-6 py-3 font-medium">Type</th>
+                                <th scope="col" class="px-6 py-3 font-medium text-right">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-list" class="divide-y divide-gray-100">
+                            <!-- Rows generated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination (Simulée) -->
+                <div class="p-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+                    <span id="pagination-info" class="text-xs text-gray-500">—</span>
+                    <div class="flex gap-1">
+                        <button id="btn-prev-page" class="px-3 py-1 text-xs font-medium text-gray-500 bg-white border border-gray-200 rounded hover:bg-gray-100 transition-colors">Précédent</button>
+                        <button id="btn-next-page" class="px-3 py-1 text-xs font-medium text-gray-500 bg-white border border-gray-200 rounded hover:bg-gray-100 transition-colors">Suivant</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal Saisir une opération -->
+    <div id="modal-new-operation" class="fixed inset-0 z-50 hidden" aria-modal="true">
+        <div class="fixed inset-0 bg-black/40 transition-opacity" id="modal-new-operation-backdrop"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+                <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+                    <h3 class="font-space font-medium text-gray-900">Saisir une opération</h3>
+                    <button type="button" id="modal-new-operation-close" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Fermer">
+                        <iconify-icon icon="lucide:x" width="20"></iconify-icon>
+                    </button>
+                </div>
+                <form id="form-new-operation" class="p-6 space-y-4">
+                    <div>
+                        <label for="new-op-date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <input type="datetime-local" id="new-op-date" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none">
+                    </div>
+                    <div>
+                        <label for="new-op-label" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <input type="text" id="new-op-label" required placeholder="Ex. Soin Visage - Client" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none">
+                    </div>
+                    <div>
+                        <label for="new-op-payment" class="block text-sm font-medium text-gray-700 mb-1">Moyen de paiement</label>
+                        <select id="new-op-payment" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none">
+                            <option value="Espèces">Espèces</option>
+                            <option value="Carte Bancaire">Carte Bancaire</option>
+                            <option value="Chèque">Chèque</option>
+                            <option value="Virement">Virement</option>
+                            <option value="Prélèvement">Prélèvement</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="new-op-type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                        <select id="new-op-type" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none">
+                            <option value="Entrée">Entrée</option>
+                            <option value="Sortie">Sortie</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="new-op-amount" class="block text-sm font-medium text-gray-700 mb-1">Montant (€)</label>
+                        <input type="number" id="new-op-amount" required step="0.01" min="0" placeholder="0.00" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none">
+                    </div>
+                    <div class="flex gap-3 pt-2">
+                        <button type="button" id="modal-new-operation-cancel" class="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">Annuler</button>
+                        <button type="submit" class="flex-1 px-4 py-2.5 bg-gold-500 hover:bg-gold-600 text-gray-900 font-medium rounded-lg transition-colors">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const allTransactions = window.caisseData.allTransactions;
+            const periodSelect = document.getElementById('period-select');
+
+            // Pagination
+            const PAGE_SIZE = 8;
+            let currentPage = 0;
+
+            // Cache de l'URL de base pour éviter de la recalculer
+            const baseUrl = window.top.location.origin + window.top.location.pathname;
+            
+            // Fonction pour naviguer sans déclencher beforeunload
+            function navigateToCaisse(operationId) {
+                const params = operationId 
+                    ? `?action=show-caisse&operation=${encodeURIComponent(operationId)}`
+                    : `?action=show-caisse`;
+                const newUrl = baseUrl + params;
+                
+                // Utiliser history.pushState qui ne déclenche pas beforeunload
+                try {
+                    window.top.history.pushState({}, '', newUrl);
+                    // Déclencher des événements pour que Bubble détecte le changement
+                    window.top.dispatchEvent(new PopStateEvent('popstate'));
+                    window.top.dispatchEvent(new Event('hashchange'));
+                } catch (e) {
+                    // Fallback si pushState ne fonctionne pas (cross-origin)
+                    window.top.location.href = newUrl;
+                }
+            }
+
+            // État du fond de caisse (chargé depuis localStorage si possible, sinon 150 par défaut)
+            var fondDeCaisse = parseFloat(localStorage.getItem('balma_fond_de_caisse')) || 150.00;
+
+            // Fonction pour mettre à jour le fond de caisse (accessible globalement)
+            window.updateFondDeCaisse = function() {
+                const currentVal = fondDeCaisse;
+                const newVal = prompt("Entrez le nouveau montant du fond de caisse (solde de départ) :", currentVal);
+
+                if (newVal !== null) {
+                    const parsed = parseFloat(newVal.replace(',', '.'));
+                    if (!isNaN(parsed)) {
+                        fondDeCaisse = parsed;
+                        localStorage.setItem('balma_fond_de_caisse', fondDeCaisse);
+                        render(periodSelect.value);
+                    } else {
+                        alert("Montant invalide.");
+                    }
+                }
+            };
+
+            function filterTransactions(period) {
+                if (period === 'all') return allTransactions;
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth();
+                return allTransactions.filter(function(t) {
+                    if (!t.date) return false;
+                    const y = t.date.getFullYear();
+                    const m = t.date.getMonth();
+                    if (period === 'current_month') return y === currentYear && m === currentMonth;
+                    if (period === 'current_year') return y === currentYear;
+                    if (period === 'last_year') return y === currentYear - 1;
+                    return true;
+                });
+            }
+
+            // Fonction de rendu
+            function render(period) {
+                if (!period) period = periodSelect.value;
+                const transactions = filterTransactions(period);
+
+                // Calculs
+                let totalIn = 0;
+                let totalOut = 0;
+                let totalBalance = 0;
+                
+                // Calcul Spécifique Caisse (Espèces)
+                // Pour la caisse physique, on prend TOUTES les transactions filtrées par la période ?
+                // Généralement le fond de caisse s'applique au jour le jour, mais ici pour l'affichage "Mois en cours",
+                // on va supposer : Fond de caisse actuel (constant) + Mouvements Espèces de la période.
+                // Note : C'est une simplification.
+                let cashIn = 0;
+                let cashOut = 0;
+
+                transactions.forEach(t => {
+                    var amt = t.amount;
+                    if (isNaN(amt)) return;
+                    // Global (tout moyen de paiement)
+                    if (t.typeInOut === 'IN') {
+                        totalIn += amt;
+                    } else {
+                        totalOut += Math.abs(amt);
+                    }
+                    totalBalance += amt;
+
+                    // Espèces uniquement
+                    if (t.paymentMethod && t.paymentMethod.toLowerCase().includes('espèce')) {
+                        if (t.typeInOut === 'IN') {
+                            cashIn += amt;
+                        } else {
+                            cashOut += Math.abs(amt);
+                        }
+                    }
+                });
+
+                const cashBalance = fondDeCaisse + cashIn - cashOut;
+
+                // Update KPIs
+                document.getElementById('kpi-balance').textContent = formatMoney(totalBalance);
+                document.getElementById('kpi-in').textContent = '+ ' + formatMoney(totalIn);
+                document.getElementById('kpi-out').textContent = '- ' + formatMoney(totalOut);
+                
+                // Update KPI Caisse
+                document.getElementById('kpi-cash').textContent = formatMoney(cashBalance);
+                document.getElementById('kpi-fond').textContent = formatMoney(fondDeCaisse);
+
+                // Populate Table
+                const tbody = document.getElementById('transactions-list');
+
+                // Pagination
+                const totalPages = Math.ceil(transactions.length / PAGE_SIZE);
+                if (currentPage >= totalPages) currentPage = Math.max(0, totalPages - 1);
+                const start = currentPage * PAGE_SIZE;
+                const end = Math.min(start + PAGE_SIZE, transactions.length);
+                const pageTransactions = transactions.slice(start, end);
+
+                // Populate Table (page courante uniquement)
+                if (pageTransactions.length > 0) {
+                    tbody.innerHTML = pageTransactions.map(t => {
+                        const isCashIn = t.typeInOut === 'IN';
+                        const amountClass = isCashIn ? 'text-green-600' : 'text-red-600';
+                        const amountPrefix = isCashIn ? '+' : '-';
+                        const displayAmount = Math.abs(t.amount);
+
+                        let paymentIcon = 'lucide:credit-card';
+                        if (t.paymentMethod && t.paymentMethod.toLowerCase().includes('espèce')) paymentIcon = 'lucide:coins';
+                        if (t.paymentMethod && t.paymentMethod.toLowerCase().includes('chèque')) paymentIcon = 'lucide:banknote';
+                        if (t.paymentMethod && t.paymentMethod.toLowerCase().includes('virement')) paymentIcon = 'lucide:arrow-right-left';
+                        if (t.paymentMethod && t.paymentMethod.toLowerCase().includes('prélèvement')) paymentIcon = 'lucide:repeat';
+
+                        return `
+                            <tr class="bg-white hover:bg-gray-50 transition-colors cursor-pointer" data-operation-id="${t.id}">
+                                <td class="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">
+                                    ${formatDate(t.date)}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="text-gray-900 block font-medium">${(t.label || '').replace(/</g, '&lt;')}</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-2 text-gray-600">
+                                        <iconify-icon icon="${paymentIcon}" width="16"></iconify-icon>
+                                        ${(t.paymentMethod || '').replace(/</g, '&lt;')}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        ${(t.type || '').replace(/</g, '&lt;')}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right font-bold ${amountClass}">
+                                    ${amountPrefix}${formatMoney(displayAmount)}
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    // Gestionnaires de clic sur les lignes
+                    tbody.querySelectorAll('tr[data-operation-id]').forEach(row => {
+                        row.addEventListener('click', function() {
+                            const operationId = this.getAttribute('data-operation-id');
+                            if (operationId) navigateToCaisse(operationId);
+                        });
+                    });
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                Aucune opération sur cette période.
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                // Info pagination
+                var paginationEl = document.getElementById('pagination-info');
+                if (paginationEl) {
+                    if (transactions.length === 0) {
+                        paginationEl.textContent = '0 opération';
+                    } else {
+                        paginationEl.textContent = (start + 1) + '-' + end + ' sur ' + transactions.length + ' opération(s)';
+                    }
+                }
+
+                // Afficher/masquer boutons pagination
+                var btnPrev = document.getElementById('btn-prev-page');
+                var btnNext = document.getElementById('btn-next-page');
+                btnPrev.style.display = currentPage > 0 ? '' : 'none';
+                btnNext.style.display = currentPage < totalPages - 1 ? '' : 'none';
+            }
+
+            // Modal Saisir une opération
+            var modal = document.getElementById('modal-new-operation');
+            var btnOpen = document.getElementById('btn-new-operation');
+            var btnClose = document.getElementById('modal-new-operation-close');
+            var btnCancel = document.getElementById('modal-new-operation-cancel');
+            var backdrop = document.getElementById('modal-new-operation-backdrop');
+            var form = document.getElementById('form-new-operation');
+
+            function openModal() {
+                var dateInput = document.getElementById('new-op-date');
+                var now = new Date();
+                dateInput.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + 'T' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+                modal.classList.remove('hidden');
+            }
+            function closeModal() {
+                modal.classList.add('hidden');
+            }
+
+            btnOpen.addEventListener('click', function(e) {
+                e.preventDefault();
+                navigateToCaisse();
+            });
+            btnClose.addEventListener('click', closeModal);
+            btnCancel.addEventListener('click', closeModal);
+            backdrop.addEventListener('click', closeModal);
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var label = document.getElementById('new-op-label').value.trim();
+                var payment = document.getElementById('new-op-payment').value;
+                var typeDisplay = document.getElementById('new-op-type').value;
+                var amountInput = parseFloat(document.getElementById('new-op-amount').value);
+                var dateInput = document.getElementById('new-op-date').value;
+                if (!label || isNaN(amountInput) || amountInput < 0) return;
+                var isSortie = typeDisplay.toLowerCase().indexOf('sortie') !== -1;
+                var amount = isSortie ? -Math.abs(amountInput) : Math.abs(amountInput);
+                var isoDate = new Date(dateInput).toISOString();
+                var newId = 'saisie-' + Date.now();
+                var newT = {
+                    id: newId,
+                    label: label,
+                    paymentMethod: payment,
+                    amount: amount,
+                    type: typeDisplay,
+                    typeInOut: isSortie ? 'OUT' : 'IN',
+                    date: new Date(dateInput)
+                };
+                allTransactions.unshift(newT);
+                closeModal();
+                form.reset();
+                currentPage = 0;
+                render(periodSelect.value);
+            });
+
+            periodSelect.addEventListener('change', function() {
+                currentPage = 0;
+                render(periodSelect.value);
+            });
+
+            // Boutons pagination
+            document.getElementById('btn-prev-page').addEventListener('click', function() {
+                if (currentPage > 0) {
+                    currentPage--;
+                    render(periodSelect.value);
+                }
+            });
+            document.getElementById('btn-next-page').addEventListener('click', function() {
+                currentPage++;
+                render(periodSelect.value);
+            });
+
+            // Export Excel (CSV compatible)
+            document.getElementById('btn-export').addEventListener('click', function() {
+                const transactions = filterTransactions(periodSelect.value);
+                if (transactions.length === 0) {
+                    alert('Aucune opération à exporter sur cette période.');
+                    return;
+                }
+
+                // BOM UTF-8 pour que Excel reconnaisse les accents
+                var csvContent = '\uFEFF';
+                // En-têtes
+                csvContent += 'Date;Description;Moyen de paiement;Type;Sens;Montant (€)\n';
+                // Lignes
+                transactions.forEach(function(t) {
+                    var dateStr = t.date ? t.date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                    var label = (t.label || '').replace(/;/g, ',').replace(/"/g, '""');
+                    var payment = (t.paymentMethod || '').replace(/;/g, ',');
+                    var type = (t.type || '').replace(/;/g, ',');
+                    var sens = t.typeInOut === 'IN' ? 'Entrée' : 'Sortie';
+                    var amount = t.typeInOut === 'IN' ? Math.abs(t.amount) : -Math.abs(t.amount);
+                    var amountStr = amount.toFixed(2).replace('.', ',');
+                    csvContent += dateStr + ';' + label + ';' + payment + ';' + type + ';' + sens + ';' + amountStr + '\n';
+                });
+
+                var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                var url = URL.createObjectURL(blob);
+                var link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'caisse_export_' + new Date().toISOString().slice(0, 10) + '.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            });
+
+            // Init
+            render(periodSelect.value);
+        });
+    </script>
+</body>
+</html>

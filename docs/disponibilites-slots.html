@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des disponibilités - Balma</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#F4D03F',
+                            500: '#C9A227',
+                            600: '#B7950B',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        .font-geist { font-family: 'Inter', sans-serif; }
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Toggle switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #C9A227;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+        
+        /* Input styles */
+        .time-input {
+            width: 45px;
+            padding: 6px 4px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            background-color: white;
+        }
+        
+        .time-input:focus {
+            outline: none;
+            border-color: #C9A227;
+            box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.1);
+        }
+        
+        .add-slot-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #C9A227;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .add-slot-btn:hover {
+            background-color: #B7950B;
+            transform: scale(1.05);
+        }
+        
+        .add-slot-btn[style*="background-color: #6b7280"]:hover {
+            background-color: #4b5563 !important;
+        }
+        
+        .add-slot-btn[style*="background-color: #10b981"]:hover {
+            background-color: #059669 !important;
+        }
+        
+        .add-slot-btn:disabled {
+            background-color: #e5e7eb;
+            color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .remove-slot-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            margin-left: 8px;
+        }
+        
+        .remove-slot-btn:hover {
+            background-color: #dc2626;
+        }
+        
+        .slot-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .slot-row span {
+            white-space: nowrap;
+        }
+        
+        .slot-row.slot-row--disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .slot-row.slot-row--disabled .time-input {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-geist text-gray-900 min-h-screen">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <h1 class="font-space font-semibold text-2xl text-gray-900 mb-8 text-center">
+            Quelles sont tes disponibilités ?
+        </h1>
+        
+        <!-- Liste des jours -->
+        <div id="jours-container" class="space-y-6">
+            <!-- Les jours seront générés dynamiquement -->
+        </div>
+    </div>
+
+    <script>
+        const JOURS_SEMAINE = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+        const MAX_SLOTS_PAR_JOUR = 2;
+        
+        // ============================================
+        // ⭐ VARIABLES BRUTES : COLLER VOS DONNÉES ICI ⭐
+        // ============================================
+        const RAW_DISPONIBILITES_DATA = `{"id":"1765813210116x280674255463587500";"jour":"Lundi";"ouvert":true};;{"id":"1765814541283x110489622582078830";"jour":"Mardi";"ouvert":true};;{"id":"1765887718015x617833492905907700";"jour":"Mercredi";"ouvert":true}`;
+        
+        const RAW_SLOTS_DATA = `{"id":"1765814383616x474996594778641400","hour_begin":"8","minute_begin":"30","hour_end":"18","minute_end":"0","dispo":"1765813210116x280674255463587500"};;{"id":"1765814495355x880700247562290400","hour_begin":"9","minute_begin":"0","hour_end":"12","minute_end":"0","dispo":"1765814541283x110489622582078830"};;{"id":"1765814510981x237846250922580480","hour_begin":"14","minute_begin":"0","hour_end":"18","minute_end":"0","dispo":"1765814541283x110489622582078830"};;{"id":"1765887745307x337468435556787650","hour_begin":"9","minute_begin":"0","hour_end":"12","minute_end":"0","dispo":""};;{"id":"1765887978132x377378622695688770","hour_begin":"15","minute_begin":"","hour_end":"18","minute_end":"","dispo":""};;{"id":"1765889593567x764139000636637200","hour_begin":"15","minute_begin":"","hour_end":"18","minute_end":"","dispo":""}`;
+        // ============================================
+        
+        // Structure de données: { [jour]: { ouvert: boolean, dispoId: string, editMode: boolean, slots: [{ id, heure_start, minutes_start, heure_stop, minutes_stop, dispo }] } }
+        let disponibilites = {};
+        // Map pour associer les IDs de disponibilité aux jours
+        let dispoToJour = {};
+        
+        // Fonction pour convertir le format Bubble (avec ;) en JSON valide
+        function parseBubbleFormat(str) {
+            // Remplacer les points-virgules entre propriétés par des virgules
+            // Format: {"key":"value";"key2":"value2"} -> {"key":"value","key2":"value2"}
+            return str.replace(/";"/g, '","').replace(/";/g, '",');
+        }
+        
+        // Charger les disponibilités depuis RAW_DISPONIBILITES_DATA
+        function loadDisponibilitesFromData() {
+            // Réinitialiser
+            JOURS_SEMAINE.forEach(jour => {
+                disponibilites[jour] = {
+                    ouvert: false,
+                    dispoId: null,
+                    editMode: false,
+                    slots: []
+                };
+            });
+            dispoToJour = {};
+            
+            if (!RAW_DISPONIBILITES_DATA || RAW_DISPONIBILITES_DATA.trim() === '') {
+                return;
+            }
+            
+            try {
+                // Parser les disponibilités séparées par ;;
+                const jsonStrings = RAW_DISPONIBILITES_DATA.split(';;').filter(s => s.trim());
+                
+                jsonStrings.forEach(jsonStr => {
+                    try {
+                        // Convertir le format Bubble en JSON valide
+                        const validJson = parseBubbleFormat(jsonStr.trim());
+                        const dispoData = JSON.parse(validJson);
+                        
+                        if (dispoData.jour && JOURS_SEMAINE.includes(dispoData.jour)) {
+                            // Gérer true/false pour ouvert
+                            disponibilites[dispoData.jour].ouvert = dispoData.ouvert === true || dispoData.ouvert === "true";
+                            disponibilites[dispoData.jour].dispoId = dispoData.id || null;
+                            
+                            // Créer la map dispoId -> jour
+                            if (dispoData.id) {
+                                dispoToJour[dispoData.id] = dispoData.jour;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Erreur parsing disponibilité:', e, jsonStr);
+                    }
+                });
+            } catch (e) {
+                console.error('Erreur parsing disponibilités:', e);
+            }
+        }
+        
+        // Charger les slots depuis RAW_SLOTS_DATA
+        function loadSlotsFromData() {
+            if (!RAW_SLOTS_DATA || RAW_SLOTS_DATA.trim() === '') {
+                return;
+            }
+            
+            try {
+                // Parser les slots séparés par ;;
+                const jsonStrings = RAW_SLOTS_DATA.split(';;').filter(s => s.trim());
+                
+                jsonStrings.forEach(jsonStr => {
+                    try {
+                        // Convertir le format Bubble en JSON valide si nécessaire
+                        let validJson = jsonStr.trim();
+                        // Vérifier si c'est le format Bubble (avec ;)
+                        if (validJson.includes('";"')) {
+                            validJson = parseBubbleFormat(validJson);
+                        }
+                        const slotData = JSON.parse(validJson);
+                        
+                        // Déterminer le jour du slot
+                        let jour = null;
+                        
+                        if (slotData.dispo && slotData.dispo.trim() !== '' && dispoToJour[slotData.dispo]) {
+                            // Le slot est associé à une disponibilité
+                            jour = dispoToJour[slotData.dispo];
+                        } else if (!slotData.dispo || slotData.dispo.trim() === '') {
+                            // Slot sans dispo - on ne peut pas déterminer le jour, on le saute
+                            console.warn('Slot sans disponibilité associée:', slotData.id);
+                            return;
+                        }
+                        
+                        if (!jour || !disponibilites[jour]) {
+                            return;
+                        }
+                        
+                        // Parser les heures et minutes (gérer les chaînes vides)
+                        const heure_start = slotData.hour_begin && slotData.hour_begin.trim() !== '' ? parseInt(slotData.hour_begin) : 0;
+                        const minutes_start = slotData.minute_begin && slotData.minute_begin.trim() !== '' ? parseInt(slotData.minute_begin) : 0;
+                        const heure_stop = slotData.hour_end && slotData.hour_end.trim() !== '' ? parseInt(slotData.hour_end) : 0;
+                        const minutes_stop = slotData.minute_end && slotData.minute_end.trim() !== '' ? parseInt(slotData.minute_end) : 0;
+                        
+                        // Ajouter le slot (limiter à MAX_SLOTS_PAR_JOUR)
+                        if (disponibilites[jour].slots.length < MAX_SLOTS_PAR_JOUR) {
+                            disponibilites[jour].slots.push({
+                                id: slotData.id,
+                                heure_start: heure_start,
+                                minutes_start: minutes_start,
+                                heure_stop: heure_stop,
+                                minutes_stop: minutes_stop,
+                                dispo: slotData.dispo || null
+                            });
+                        }
+                    } catch (e) {
+                        console.warn('Erreur parsing slot:', e, jsonStr);
+                    }
+                });
+            } catch (e) {
+                console.error('Erreur parsing slots:', e);
+            }
+        }
+        
+        // S'assurer que chaque jour a au moins un slot (le premier, non supprimable)
+        function ensureFirstSlotPerDay() {
+            JOURS_SEMAINE.forEach(jour => {
+                const jourData = disponibilites[jour];
+                if (jourData.slots.length === 0) {
+                    if (!jourData.dispoId) {
+                        jourData.dispoId = `temp_dispo_${Date.now()}_${Math.random()}`;
+                        dispoToJour[jourData.dispoId] = jour;
+                    }
+                    jourData.slots.push({
+                        id: null,
+                        heure_start: 8,
+                        minutes_start: 30,
+                        heure_stop: 18,
+                        minutes_stop: 0,
+                        dispo: jourData.dispoId
+                    });
+                }
+            });
+        }
+        
+        // Basculer le mode édition pour un jour
+        function toggleEditMode(jour) {
+            disponibilites[jour].editMode = !disponibilites[jour].editMode;
+            renderJours();
+        }
+        
+        // Initialiser les jours
+        function initJours() {
+            loadDisponibilitesFromData();
+            loadSlotsFromData();
+            ensureFirstSlotPerDay();
+            renderJours();
+        }
+        
+        // Rendre les jours
+        function renderJours() {
+            const container = document.getElementById('jours-container');
+            if (!container) {
+                console.error('Conteneur jours-container introuvable');
+                return;
+            }
+            
+            try {
+                container.innerHTML = '';
+                
+                JOURS_SEMAINE.forEach(jour => {
+                    const jourData = disponibilites[jour];
+                    if (!jourData) {
+                        console.warn('jourData manquant pour:', jour);
+                        return;
+                    }
+                const jourDiv = document.createElement('div');
+                jourDiv.className = 'bg-white rounded-xl shadow-sm border border-gray-200 p-6';
+                
+                // En-tête avec toggle, nom du jour, slots et boutons sur la même ligne
+                const header = document.createElement('div');
+                header.className = 'flex items-center gap-4 flex-wrap';
+                
+                // Toggle
+                const toggleLabel = document.createElement('label');
+                toggleLabel.className = 'toggle-switch flex-shrink-0';
+                const toggleInput = document.createElement('input');
+                toggleInput.type = 'checkbox';
+                toggleInput.checked = jourData.ouvert;
+                toggleInput.onchange = () => {
+                    jourData.ouvert = toggleInput.checked;
+                    if (jourData.ouvert) {
+                        // Si on active le jour et qu'il n'a pas de dispoId, en créer un
+                        if (!jourData.dispoId) {
+                            jourData.dispoId = `temp_dispo_${Date.now()}_${Math.random()}`;
+                            dispoToJour[jourData.dispoId] = jour;
+                        }
+                        ensureFirstSlotPerDay();
+                    }
+                    // On ne vide pas les slots : le premier reste visible (grisé)
+                    renderJours();
+                };
+                const toggleSlider = document.createElement('span');
+                toggleSlider.className = 'toggle-slider';
+                toggleLabel.appendChild(toggleInput);
+                toggleLabel.appendChild(toggleSlider);
+                
+                // Nom du jour
+                const jourName = document.createElement('span');
+                jourName.className = 'font-space font-medium text-gray-900 flex-shrink-0';
+                jourName.style.width = '120px';
+                jourName.textContent = jour;
+                
+                header.appendChild(toggleLabel);
+                header.appendChild(jourName);
+                
+                const isDayOpen = jourData.ouvert;
+                const editMode = jourData.editMode || false;
+                const slotsToShow = isDayOpen ? jourData.slots : [jourData.slots[0]].filter(Boolean);
+                
+                // Premier slot : toujours sur la même ligne que le toggle et le nom du jour
+                if (slotsToShow.length > 0) {
+                    const firstSlotRow = createSlotRow(jour, 0, slotsToShow[0], false, {
+                        isFirstSlot: true,
+                        isDisabled: !isDayOpen || !editMode,
+                        editMode: editMode,
+                        isDayOpen: isDayOpen
+                    });
+                    
+                    // Mode édition : bouton + si on peut ajouter
+                    if (editMode && slotsToShow.length === 1 && isDayOpen && jourData.slots.length < MAX_SLOTS_PAR_JOUR) {
+                        const addBtn = document.createElement('button');
+                        addBtn.className = 'add-slot-btn';
+                        addBtn.innerHTML = '<iconify-icon icon="lucide:plus" width="16"></iconify-icon>';
+                        addBtn.onclick = () => addSlot(jour);
+                        addBtn.title = 'Ajouter un créneau';
+                        firstSlotRow.appendChild(addBtn);
+                    }
+                    
+                    header.appendChild(firstSlotRow);
+                }
+                
+                // Boutons d'action à droite : crayon (mode lecture) ou close/save (mode édition)
+                const actionsContainer = document.createElement('div');
+                actionsContainer.className = 'flex items-center gap-2 flex-shrink-0 ml-auto';
+                
+                if (editMode) {
+                    // Mode édition : boutons close et save
+                    const closeBtn = document.createElement('button');
+                    closeBtn.className = 'add-slot-btn';
+                    closeBtn.style.backgroundColor = '#6b7280';
+                    closeBtn.innerHTML = '<iconify-icon icon="lucide:x" width="16"></iconify-icon>';
+                    closeBtn.onclick = () => {
+                        disponibilites[jour].editMode = false;
+                        renderJours();
+                    };
+                    closeBtn.title = 'Annuler';
+                    
+                    const saveBtn = document.createElement('button');
+                    saveBtn.className = 'add-slot-btn';
+                    saveBtn.style.backgroundColor = '#10b981';
+                    saveBtn.innerHTML = '<iconify-icon icon="lucide:check" width="16"></iconify-icon>';
+                    saveBtn.onclick = () => {
+                        saveSlotToBubble(jour);
+                        disponibilites[jour].editMode = false;
+                        renderJours();
+                    };
+                    saveBtn.title = 'Sauvegarder';
+                    
+                    actionsContainer.appendChild(closeBtn);
+                    actionsContainer.appendChild(saveBtn);
+                } else {
+                    // Mode lecture : bouton crayon
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'add-slot-btn';
+                    editBtn.style.backgroundColor = '#6b7280';
+                    editBtn.innerHTML = '<iconify-icon icon="lucide:pencil" width="16"></iconify-icon>';
+                    editBtn.onclick = () => toggleEditMode(jour);
+                    editBtn.title = 'Modifier';
+                    actionsContainer.appendChild(editBtn);
+                }
+                
+                header.appendChild(actionsContainer);
+                jourDiv.appendChild(header);
+                
+                // Slots supplémentaires : en colonnes en dessous, alignés avec le premier slot
+                if (slotsToShow.length > 1) {
+                    const additionalSlotsContainer = document.createElement('div');
+                    additionalSlotsContainer.className = 'flex flex-col gap-2 mt-2';
+                    // Aligner avec le premier slot : toggle (48px) + gap (16px) + nom (120px) + gap (16px) = 200px
+                    additionalSlotsContainer.style.marginLeft = '200px';
+                    
+                    for (let index = 1; index < slotsToShow.length; index++) {
+                        const isLastSlot = isDayOpen && index === jourData.slots.length - 1;
+                        const canAddMore = isDayOpen && jourData.slots.length < MAX_SLOTS_PAR_JOUR;
+                        const slotRow = createSlotRow(jour, index, slotsToShow[index], isLastSlot && canAddMore, {
+                            isFirstSlot: false,
+                            isDisabled: !isDayOpen || !editMode,
+                            editMode: editMode,
+                            isDayOpen: isDayOpen
+                        });
+                        additionalSlotsContainer.appendChild(slotRow);
+                    }
+                    
+                    // Si jour ouvert, mode édition et on peut ajouter un slot, bouton + sur la dernière ligne
+                    if (editMode && isDayOpen && jourData.slots.length < MAX_SLOTS_PAR_JOUR) {
+                        const lastRow = additionalSlotsContainer.lastElementChild;
+                        if (lastRow && !lastRow.querySelector('.add-slot-btn')) {
+                            const addBtn = document.createElement('button');
+                            addBtn.className = 'add-slot-btn';
+                            addBtn.innerHTML = '<iconify-icon icon="lucide:plus" width="16"></iconify-icon>';
+                            addBtn.onclick = () => addSlot(jour);
+                            addBtn.title = 'Ajouter un créneau';
+                            lastRow.appendChild(addBtn);
+                        }
+                    }
+                    
+                    jourDiv.appendChild(additionalSlotsContainer);
+                }
+                container.appendChild(jourDiv);
+            });
+            } catch (error) {
+                console.error('Erreur lors du rendu:', error);
+                // En cas d'erreur, essayer de restaurer au moins le conteneur
+                if (container) {
+                    container.innerHTML = '<div class="p-4 text-red-600">Erreur lors du rendu. Veuillez recharger la page.</div>';
+                }
+            }
+        }
+        
+        // Créer une ligne de slot
+        function createSlotRow(jour, index, slot, showAddButton = false, options = {}) {
+            const isFirstSlot = options.isFirstSlot === true;
+            const isDisabled = options.isDisabled === true;
+            const editMode = options.editMode === true;
+            const isDayOpen = options.isDayOpen === true;
+            
+            // Griser seulement si le jour est fermé, pas si c'est juste le mode édition qui est désactivé
+            const isGreyed = !isDayOpen;
+            
+            const row = document.createElement('div');
+            row.className = 'slot-row' + (isGreyed ? ' slot-row--disabled' : '');
+            
+            // Heure début
+            const heureStartInput = document.createElement('input');
+            heureStartInput.type = 'number';
+            heureStartInput.className = 'time-input';
+            heureStartInput.min = 0;
+            heureStartInput.max = 23;
+            heureStartInput.value = slot.heure_start ?? 8;
+            heureStartInput.disabled = isDisabled;
+            heureStartInput.onchange = () => {
+                slot.heure_start = parseInt(heureStartInput.value) || 0;
+            };
+            
+            const h1 = document.createElement('span');
+            h1.className = 'text-gray-600 font-medium';
+            h1.textContent = ' h ';
+            
+            // Minutes début
+            const minutesStartInput = document.createElement('input');
+            minutesStartInput.type = 'number';
+            minutesStartInput.className = 'time-input';
+            minutesStartInput.min = 0;
+            minutesStartInput.max = 59;
+            minutesStartInput.step = 15;
+            minutesStartInput.value = slot.minutes_start ?? 0;
+            minutesStartInput.disabled = isDisabled;
+            minutesStartInput.onchange = () => {
+                slot.minutes_start = parseInt(minutesStartInput.value) || 0;
+            };
+            
+            const a = document.createElement('span');
+            a.className = 'text-gray-600 font-medium';
+            a.textContent = ' à ';
+            
+            // Heure fin
+            const heureStopInput = document.createElement('input');
+            heureStopInput.type = 'number';
+            heureStopInput.className = 'time-input';
+            heureStopInput.min = 0;
+            heureStopInput.max = 23;
+            heureStopInput.value = slot.heure_stop ?? 18;
+            heureStopInput.disabled = isDisabled;
+            heureStopInput.onchange = () => {
+                slot.heure_stop = parseInt(heureStopInput.value) || 0;
+            };
+            
+            const h2 = document.createElement('span');
+            h2.className = 'text-gray-600 font-medium';
+            h2.textContent = ' h ';
+            
+            // Minutes fin
+            const minutesStopInput = document.createElement('input');
+            minutesStopInput.type = 'number';
+            minutesStopInput.className = 'time-input';
+            minutesStopInput.min = 0;
+            minutesStopInput.max = 59;
+            minutesStopInput.step = 15;
+            minutesStopInput.value = slot.minutes_stop ?? 0;
+            minutesStopInput.disabled = isDisabled;
+            minutesStopInput.onchange = () => {
+                slot.minutes_stop = parseInt(minutesStopInput.value) || 0;
+            };
+            
+            row.appendChild(heureStartInput);
+            row.appendChild(h1);
+            row.appendChild(minutesStartInput);
+            row.appendChild(a);
+            row.appendChild(heureStopInput);
+            row.appendChild(h2);
+            row.appendChild(minutesStopInput);
+            
+            // Bouton supprimer : jamais sur le premier slot, seulement en mode édition
+            if (!isFirstSlot && !isDisabled && editMode) {
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-slot-btn';
+                removeBtn.innerHTML = '<iconify-icon icon="lucide:x" width="14"></iconify-icon>';
+                removeBtn.onclick = () => removeSlot(jour, index);
+                removeBtn.title = 'Supprimer ce créneau';
+                row.appendChild(removeBtn);
+            }
+            
+            // Bouton ajouter à droite du dernier slot (si on peut encore ajouter et en mode édition)
+            if (showAddButton && editMode && disponibilites[jour].ouvert && disponibilites[jour].slots.length < MAX_SLOTS_PAR_JOUR) {
+                const addBtn = document.createElement('button');
+                addBtn.className = 'add-slot-btn';
+                addBtn.innerHTML = '<iconify-icon icon="lucide:plus" width="16"></iconify-icon>';
+                addBtn.onclick = () => addSlot(jour);
+                addBtn.title = 'Ajouter un créneau';
+                row.appendChild(addBtn);
+            }
+            
+            return row;
+        }
+        
+        // Ajouter un slot
+        function addSlot(jour) {
+            const jourData = disponibilites[jour];
+            if (!jourData) return;
+
+            if (jourData.slots.length >= MAX_SLOTS_PAR_JOUR) {
+                alert(`Vous ne pouvez avoir que ${MAX_SLOTS_PAR_JOUR} créneaux par jour`);
+                return;
+            }
+
+            if (!jourData.dispoId) {
+                jourData.dispoId = `temp_dispo_${Date.now()}_${Math.random()}`;
+                dispoToJour[jourData.dispoId] = jour;
+            }
+
+            // 1. Ajouter le slot localement et re-rendre immédiatement
+            jourData.slots.push({
+                id: null,
+                heure_start: 9,
+                minutes_start: 0,
+                heure_stop: 18,
+                minutes_stop: 0,
+                dispo: jourData.dispoId
+            });
+            renderJours();
+
+            // 2. Notifier Bubble (si la fonction existe)
+            const dispoId = String(jourData.dispoId);
+            try {
+                if (typeof window.bubble_fn_newSlot === 'function') {
+                    window.bubble_fn_newSlot(dispoId);
+                } else if (window.bubble_fn_newSlot && typeof window.bubble_fn_newSlot.run === 'function') {
+                    window.bubble_fn_newSlot.run(dispoId);
+                }
+            } catch (e) {
+                console.error('Erreur appel bubble_fn_newSlot:', e);
+            }
+        }
+
+        // Supprimer un slot (jamais le premier, index 0)
+        function removeSlot(jour, index) {
+            if (index === 0) return;
+            disponibilites[jour].slots.splice(index, 1);
+            renderJours();
+        }
+        
+        // Fonction pour obtenir les slots au format attendu (pour utilisation externe)
+        function getSlotsData() {
+            const slots = [];
+            
+            JOURS_SEMAINE.forEach(jour => {
+                const jourData = disponibilites[jour];
+                if (jourData.ouvert) {
+                    jourData.slots.forEach(slot => {
+                        slots.push({
+                            id: slot.id || `new_${Date.now()}_${Math.random()}`,
+                            hour_begin: String(slot.heure_start || 0),
+                            minute_begin: String(slot.minutes_start || 0),
+                            hour_end: String(slot.heure_stop || 0),
+                            minute_end: String(slot.minutes_stop || 0),
+                            dispo: slot.dispo || jourData.dispoId || ""
+                        });
+                    });
+                }
+            });
+            
+            return slots.map(s => JSON.stringify(s)).join(';;');
+        }
+        
+        // Fonction pour obtenir les disponibilités au format attendu (pour utilisation externe)
+        function getDisponibilitesData() {
+            const disponibilitesArray = [];
+            
+            JOURS_SEMAINE.forEach(jour => {
+                const jourData = disponibilites[jour];
+                disponibilitesArray.push({
+                    id: jourData.dispoId || `new_dispo_${Date.now()}_${Math.random()}`,
+                    jour: jour,
+                    ouvert: jourData.ouvert
+                });
+            });
+            
+            return disponibilitesArray.map(d => JSON.stringify(d)).join(';;');
+        }
+        
+        // Fonction pour sauvegarder les données d'un jour vers Bubble
+        function saveSlotToBubble(jour) {
+            console.log('=== saveSlotToBubble appelée pour:', jour);
+            const jourData = disponibilites[jour];
+            console.log('jourData:', jourData);
+            
+            if (!jourData) {
+                console.error('jourData est undefined pour:', jour);
+                return;
+            }
+            
+            // output1 = dispo (type Disponibilités)
+            const output1 = {
+                id: jourData.dispoId || `new_dispo_${Date.now()}_${Math.random()}`,
+                jour: jour,
+                ouvert: jourData.ouvert
+            };
+            
+            // outputlist1 = liste de slots (type Dispinobilités Slots)
+            const outputlist1 = jourData.slots.map(slot => ({
+                id: slot.id || `new_slot_${Date.now()}_${Math.random()}`,
+                hour_begin: String(slot.heure_start || 0),
+                minute_begin: String(slot.minutes_start || 0),
+                hour_end: String(slot.heure_stop || 0),
+                minute_end: String(slot.minutes_stop || 0),
+                dispo: slot.dispo || jourData.dispoId || ""
+            }));
+            
+            // Convertir en JSON strings pour "Javascript to Bubble" (attend du text)
+            const output1Json = JSON.stringify(output1);
+            const outputlist1Json = JSON.stringify(outputlist1);
+            
+            console.log('=== Appel bubble_fn_saveSlot(output1=dispo, outputlist1=slots) ===');
+            console.log('output1 (dispo):', output1);
+            console.log('output1 JSON:', output1Json);
+            console.log('outputlist1 (liste slots):', outputlist1);
+            console.log('outputlist1 JSON:', outputlist1Json);
+            console.log('Vérification de la fonction bubble_fn_saveSlot...');
+            console.log('typeof bubble_fn_saveSlot:', typeof bubble_fn_saveSlot);
+            console.log('typeof window.bubble_fn_saveSlot:', typeof window.bubble_fn_saveSlot);
+            
+            try {
+                // Essayer avec .run() d'abord (méthode recommandée pour Bubble "Run JavaScript")
+                if (typeof bubble_fn_saveSlot === 'function' && typeof bubble_fn_saveSlot.run === 'function') {
+                    console.log('Appel via bubble_fn_saveSlot.run()...');
+                    bubble_fn_saveSlot.run(output1Json, outputlist1Json);
+                    console.log('✓ bubble_fn_saveSlot.run() appelée avec JSON string');
+                } else if (typeof bubble_fn_saveSlot === 'function') {
+                    console.log('Appel via bubble_fn_saveSlot()...');
+                    bubble_fn_saveSlot(output1Json, outputlist1Json);
+                    console.log('✓ bubble_fn_saveSlot() appelée avec JSON string');
+                } else if (window.bubble_fn_saveSlot) {
+                    if (typeof window.bubble_fn_saveSlot.run === 'function') {
+                        console.log('Appel via window.bubble_fn_saveSlot.run()...');
+                        window.bubble_fn_saveSlot.run(output1Json, outputlist1Json);
+                        console.log('✓ window.bubble_fn_saveSlot.run() appelée avec JSON string');
+                    } else {
+                        console.log('Appel via window.bubble_fn_saveSlot()...');
+                        window.bubble_fn_saveSlot(output1Json, outputlist1Json);
+                        console.log('✓ window.bubble_fn_saveSlot() appelée avec JSON string');
+                    }
+                } else {
+                    console.error('❌ bubble_fn_saveSlot non disponible');
+                    console.error('bubble_fn_saveSlot:', bubble_fn_saveSlot);
+                    console.error('window.bubble_fn_saveSlot:', window.bubble_fn_saveSlot);
+                    alert('La fonction bubble_fn_saveSlot n\'est pas disponible. Vérifiez la configuration dans Bubble.');
+                }
+            } catch (e) {
+                console.error('❌ Erreur lors de l\'appel bubble_fn_saveSlot:', e);
+                console.error('Stack:', e.stack);
+                alert('Erreur lors de l\'appel: ' + e.message);
+            }
+        }
+        
+        // Initialiser au chargement
+        initJours();
+    </script>
+</body>
+</html>

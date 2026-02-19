@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balma - Création en cours...</title>
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>✨</text></svg>">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+
+    <style>
+        .font-geist { font-family: 'Inter', sans-serif; }
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+
+        @keyframes drift {
+            0% { transform: translateX(0) translateY(0); opacity: 0.4; }
+            50% { transform: translateX(-20px) translateY(-10px); opacity: 0.6; }
+            100% { transform: translateX(0) translateY(0); opacity: 0.4; }
+        }
+        
+        .fog-layer {
+            animation: drift 20s ease-in-out infinite;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08), transparent 60%);
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .pulse-ring::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            border: 2px solid #F4D03F;
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        @keyframes fill-bar {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        .progress-bar-fill {
+            animation: fill-bar 5s ease-in-out forwards;
+        }
+
+        .step-item {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.5s ease;
+        }
+
+        .step-item.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .text-gold-shine {
+            background: linear-gradient(90deg, #C9A227 0%, #F4D03F 50%, #C9A227 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 font-sans antialiased h-screen w-full overflow-hidden flex flex-col items-center justify-center relative">
+
+    <!-- Background -->
+    <div class="absolute inset-0 z-0 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-zinc-900/30"></div>
+        <div class="fog-layer absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 blur-3xl pointer-events-none"></div>
+    </div>
+
+    <main class="z-10 w-full max-w-md p-8 text-center">
+        
+        <!-- Icon / Loader -->
+        <div class="relative w-24 h-24 mx-auto mb-10 flex items-center justify-center">
+            <div class="absolute inset-0 pulse-ring"></div>
+            <div class="w-16 h-16 bg-zinc-900 rounded-full border border-zinc-800 flex items-center justify-center shadow-2xl relative z-10">
+                <iconify-icon icon="lucide:sparkles" width="32" class="text-[#F4D03F]"></iconify-icon>
+            </div>
+        </div>
+
+        <h1 class="text-3xl font-poppins font-semibold mb-2 text-white">
+            Création de votre espace
+        </h1>
+        <p class="text-zinc-400 font-geist mb-10">
+            Quelques secondes, la magie opère...
+        </p>
+
+        <!-- Steps -->
+        <div class="space-y-4 mb-10 text-left pl-8">
+            <div class="step-item flex items-center gap-3" id="step-1">
+                <iconify-icon icon="lucide:check-circle" class="text-zinc-600 transition-colors duration-300" width="20"></iconify-icon>
+                <span class="text-zinc-300 font-geist text-sm">Analyse de vos préférences</span>
+            </div>
+            <div class="step-item flex items-center gap-3" id="step-2">
+                <iconify-icon icon="lucide:check-circle" class="text-zinc-600 transition-colors duration-300" width="20"></iconify-icon>
+                <span class="text-zinc-300 font-geist text-sm">Configuration de l'agenda</span>
+            </div>
+            <div class="step-item flex items-center gap-3" id="step-3">
+                <iconify-icon icon="lucide:check-circle" class="text-zinc-600 transition-colors duration-300" width="20"></iconify-icon>
+                <span class="text-zinc-300 font-geist text-sm">Génération du design</span>
+            </div>
+            <div class="step-item flex items-center gap-3" id="step-4">
+                <iconify-icon icon="lucide:check-circle" class="text-zinc-600 transition-colors duration-300" width="20"></iconify-icon>
+                <span class="text-zinc-300 font-geist text-sm">Finalisation...</span>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-zinc-900 rounded-full h-1.5 mb-2 overflow-hidden border border-zinc-800">
+            <div class="bg-[#F4D03F] h-1.5 rounded-full progress-bar-fill w-0"></div>
+        </div>
+        <p class="text-xs text-zinc-500 font-geist mt-2" id="percent">0%</p>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const steps = [
+                { id: 'step-1', time: 500 },
+                { id: 'step-2', time: 1500 },
+                { id: 'step-3', time: 2800 },
+                { id: 'step-4', time: 4000 }
+            ];
+
+            // Show steps sequentially
+            steps.forEach(step => {
+                setTimeout(() => {
+                    const el = document.getElementById(step.id);
+                    el.classList.add('active');
+                    
+                    // Highlight icon
+                    const icon = el.querySelector('iconify-icon');
+                    icon.classList.remove('text-zinc-600');
+                    icon.classList.add('text-green-400');
+                    
+                    // Previous step to checked/dimmed if needed, but here we just keep them green
+                }, step.time);
+            });
+
+            // Counter animation
+            const percentEl = document.getElementById('percent');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 1;
+                percentEl.innerText = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    percentEl.innerText = "Prêt !";
+                    percentEl.classList.add('text-gold-shine', 'font-bold');
+                    
+                    // Redirect or show final state after completion (optional)
+                    setTimeout(() => {
+                        // Example redirect or message
+                        // window.location.href = '/dashboard.html'; 
+                        percentEl.innerText = "Redirection...";
+                    }, 1000);
+                }
+            }, 50); // 50ms * 100 = 5000ms = 5s matches CSS animation
+        });
+    </script>
+</body>
+</html>

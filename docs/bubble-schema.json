@@ -1,0 +1,887 @@
+{
+    "get": [
+        "account",
+        "booking",
+        "client",
+        "dispinobilitÃ©sslots",
+        "disponibilitÃ©s",
+        "locaux",
+        "prestationcategories",
+        "prestations",
+        "project",
+        "team",
+        "website",
+        "websitesections",
+        "workspace",
+        "user"
+    ],
+    "post": [
+        {
+            "endpoint": "CE - Recalculate Range",
+            "parameters": [
+                {
+                    "key": "Slot",
+                    "value": "custom.dispinobilitÃ©sslots",
+                    "optional": false,
+                    "param_in": "body"
+                }
+            ],
+            "method": "post",
+            "auth_unecessary": false,
+            "return_btype": {}
+        }
+    ],
+    "types": {
+        "account": {
+            "display": "Account",
+            "fields": [
+                {
+                    "id": "___full_name_text",
+                    "display": "ðŸ¤– Full Name",
+                    "type": "text"
+                },
+                {
+                    "id": "nom_text",
+                    "display": "Nom",
+                    "type": "text"
+                },
+                {
+                    "id": "pr_nom_text",
+                    "display": "PrÃ©nom",
+                    "type": "text"
+                },
+                {
+                    "id": "user_user",
+                    "display": "user",
+                    "type": "user"
+                },
+                {
+                    "id": "workspace_custom_workspace",
+                    "display": "Workspace",
+                    "type": "custom.workspace"
+                },
+                {
+                    "id": "Created Date",
+                    "display": "Created Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Modified Date",
+                    "display": "Modified Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Created By",
+                    "display": "Created By",
+                    "type": "user"
+                },
+                {
+                    "id": "_id",
+                    "display": "unique ID",
+                    "type": "text"
+                },
+                {
+                    "id": "Slug",
+                    "display": "Slug",
+                    "type": "text"
+                }
+            ]
+        },
+        "booking": {
+            "display": "Booking",
+            "fields": [
+                {
+                    "id": "assign____user",
+                    "display": "AssignÃ© Ã ",
+                    "type": "user"
+                },
+                {
+                    "id": "client_custom_client",
+                    "display": "Client",
+                    "type": "custom.client"
+                },
+                {
+                    "id": "date_date",
+                    "display": "Date Begin",
+                    "type": "date"
+                },
+                {
+                    "id": "date_end_date",
+                    "display": "Date End",
+                    "type": "date"
+                },
+                {
+                    "id": "mois_number",
+                    "display": "Mois",
+                    "type": "number"
+                },
+                {
+                    "id": "prestation_custom_prestations",
+                    "display": "Prestation",
+                    "type": "custom.prestations"
+                },
+                {
+                    "id": "prix_pay__number",
+                    "display": "Prix_PayÃ©",
+                    "type": "number"
+                },
+                {
+                    "id": "range_date_range",
+                    "display": "Range",
+                    "type": "date_range"
+                },
+                {
+                    "id": "statut_option_os_statut_paiement",
+                    "display": "Statut",
+                    "type": "option.os_statut_paiement"
+                },
+                {
+                    "id": "workspace_custom_workspace",
+                    "display": "Workspace",
+                    "type": "custom.workspace"
+                },
+                {
+                    "id": "Created Date",
+                    "display": "Created Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Modified Date",
+                    "display": "Modified Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Created By",
+                    "display": "Created By",
+                    "type": "user"
+                },
+                {
+                    "id": "_id",
+                    "display": "unique ID",
+                    "type": "text"
+                },
+                {
+                    "id": "Slug",
+                    "display": "Slug",
+                    "type": "text"
+                }
+            ]
+        },
+        "client": {
+            "display": "Client",
+            "fields": [
+                {
+                    "id": "___full_name_text",
+                    "display": "ðŸ¤– Full Name",
+                    "type": "text"
+                },
+                {
+                    "id": "bookings_planned_list_custom_booking",
+                    "display": "Bookings_planned",
+                    "type": "list.custom.booking"
+                },
+                {
+                    "id": "mail_text",
+                    "display": "Mail",
+                    "type": "text"
+                },
+                {
+                    "id": "nom_text",
+                    "display": "Nom",
+                    "type": "text"
+                },
+                {
+                    "id": "pr_nom_text",
+                    "display": "PrÃ©nom",
+                    "type": "text"
+                },
+                {
+                    "id": "prestations_list_custom_prestations",
+                    "display": "Prestations",
+                    "type": "list.custom.prestations"
+                },
+                {
+                    "id": "t_l_phone_text",
+                    "display": "TÃ©lÃ©phone",
+                    "type": "text"
+                },
+                {
+                    "id": "workspace_custom_workspace",
+                    "display": "Workspace",
+                    "type": "custom.workspace"
+                },
+                {
+                    "id": "Created Date",
+                    "display": "Created Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Modified Date",
+                    "display": "Modified Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Created By",
+                    "display": "Created By",
+                    "type": "user"
+                },
+                {
+                    "id": "_id",
+                    "display": "unique ID",
+                    "type": "text"
+                },
+                {
+                    "id": "Slug",
+                    "display": "Slug",
+                    "type": "text"
+                }
+            ]
+        },
+        "dispinobilitÃ©sslots": {
+            "display": "DispinobilitÃ©s Slots",
+            "fields": [
+                {
+                    "id": "heure_start_number",
+                    "display": "Heure Start",
+                    "type": "number"
+                },
+                {
+                    "id": "heure_stop_number",
+                    "display": "Heure stop",
+                    "type": "number"
+                },
+                {
+                    "id": "jour_custom_disponibilit_s",
+                    "display": "Jour",
+                    "type": "custom.disponibilitÃ©s"
+                },
+                {
+                    "id": "minutes_start_number",
+                    "display": "Minutes Start",
+                    "type": "number"
+                },
+                {
+                    "id": "minutes_stop_number",
+                    "display": "Minutes Stop",
+                    "type": "number"
+                },
+                {
+                    "id": "range_dispo_number_range",
+                    "display": "Range Dispo",
+                    "type": "number_range"
+                },
+                {
+                    "id": "workspace_custom_workspace",
+                    "display": "Workspace",
+                    "type": "custom.workspace"
+                },
+                {
+                    "id": "Created Date",
+                    "display": "Created Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Modified Date",
+                    "display": "Modified Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Created By",
+                    "display": "Created By",
+                    "type": "user"
+                },
+                {
+                    "id": "_id",
+                    "display": "unique ID",
+                    "type": "text"
+                },
+                {
+                    "id": "Slug",
+                    "display": "Slug",
+                    "type": "text"
+                }
+            ]
+        },
+        "disponibilitÃ©s": {
+            "display": "DisponibilitÃ©s",
+            "fields": [
+                {
+                    "id": "jour__number__number",
+                    "display": "Jour (number)",
+                    "type": "number"
+                },
+                {
+                    "id": "jour_option_os_jours_semaine",
+                    "display": "Jour",
+                    "type": "option.os_jours_semaine"
+                },
+                {
+                    "id": "ouvert___boolean",
+                    "display": "Ouvert ?",
+                    "type": "boolean"
+                },
+                {
+                    "id": "slots_list_custom_dispinobilit_s_slots",
+                    "display": "Slots",
+                    "type": "list.custom.dispinobilitÃ©sslots"
+                },
+                {
+                    "id": "slots_list_number_range",
+                    "display": "âŒslots",
+                    "type": "list.number_range"
+                },
+                {
+                    "id": "workspace_custom_workspace",
+                    "display": "Workspace",
+                    "type": "custom.workspace"
+                },
+                {
+                    "id": "Created Date",
+                    "display": "Created Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Modified Date",
+                    "display": "Modified Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Created By",
+                    "display": "Created By",
+                    "type": "user"
+                },
+                {
+                    "id": "_id",
+                    "display": "unique ID",
+                    "type": "text"
+                },
+                {
+                    "id": "Slug",
+                    "display": "Slug",
+                    "type": "text"
+                }
+            ]
+        },
+        "locaux": {
+            "display": "Locaux",
+            "fields": [
+                {
+                    "id": "adresse_geographic_address",
+                    "display": "Adresse",
+                    "type": "geographic_address"
+                },
+                {
+                    "id": "deplacement_domicile_distance_number",
+                    "display": "Deplacement Domicile Distance",
+                    "type": "number"
+                },
+                {
+                    "id": "is_local_boolean",
+                    "display": "Is Local",
+                    "type": "boolean"
+                },
+                {
+                    "id": "nom_text",
+                    "display": "Nom",
+                    "type": "text"
+                },
+                {
+                    "id": "workspace_custom_workspace",
+                    "display": "Workspace",
+                    "type": "custom.workspace"
+                },
+                {
+                    "id": "Created Date",
+                    "display": "Created Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Modified Date",
+                    "display": "Modified Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Created By",
+                    "display": "Created By",
+                    "type": "user"
+                },
+                {
+                    "id": "_id",
+                    "display": "unique ID",
+                    "type": "text"
+                },
+                {
+                    "id": "Slug",
+                    "display": "Slug",
+                    "type": "text"
+                }
+            ]
+        },
+        "prestationcategories": {
+            "display": "Prestation Categories",
+            "fields": [
+                {
+                    "id": "categorie_text",
+                    "display": "Categorie",
+                    "type": "text"
+                },
+                {
+                    "id": "order_number",
+                    "display": "Order",
+                    "type": "number"
+                },
+                {
+                    "id": "reference_option_os_prestation_type",
+                    "display": "Reference",
+                    "type": "option.os_prestation_type"
+                },
+                {
+                    "id": "workspace_custom_workspace",
+                    "display": "Workspace",
+                    "type": "custom.workspace"
+                },
+                {
+                    "id": "Created Date",
+                    "display": "Created Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Modified Date",
+                    "display": "Modified Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Created By",
+                    "display": "Created By",
+                    "type": "user"
+                },
+                {
+                    "id": "_id",
+                    "display": "unique ID",
+                    "type": "text"
+                },
+                {
+                    "id": "Slug",
+                    "display": "Slug",
+                    "type": "text"
+                }
+            ]
+        },
+        "prestations": {
+            "display": "Prestations",
+            "fields": [
+                {
+                    "id": "cat_gorie_custom_prestation_categories",
+                    "display": "CatÃ©gorie",
+                    "type": "custom.prestationcategories"
+                },
+                {
+                    "id": "couleur_option_os_couleur",
+                    "display": "Couleur",
+                    "type": "option.os_couleur"
+                },
+                {
+                    "id": "description_text",
+                    "display": "Description",
+                    "type": "text"
+                },
+                {
+                    "id": "dur_e_min_number",
+                    "display": "DurÃ©e Min",
+                    "type": "number"
+                },
+                {
+                    "id": "dur_e_number",
+                    "display": "DurÃ©e Heure",
+                    "type": "number"
+                },
+                {
+                    "id": "hide_from_site_boolean",
+                    "display": "Display",
+                    "type": "boolean"
+                },
+                {
+                    "id": "local_custom_locaux",
+                    "display": "Local",
+                    "type": "custom.locaux"
+                },
+                {
+                    "id": "nom_text",
+                    "display": "Nom",
+                    "type": "text"
+                },
+                {
+                    "id": "prix_number",
+                    "display": "Prix",
+                    "type": "number"
+                },
+                {
+                    "id": "responsable_custom_team",
+                    "display": "âŒ Responsable",
+                    "type": "custom.team"
+                },
+                {
+                    "id": "responsable_user",
+                    "display": "âŒAssignÃ© Ã ",
+                    "type": "user"
+                },
+                {
+                    "id": "type_option_os_prestation_type",
+                    "display": "âŒType",
+                    "type": "option.os_prestation_type"
+                },
+                {
+                    "id": "workspace_custom_workspace",
+                    "display": "Workspace",
+                    "type": "custom.workspace"
+                },
+                {
+                    "id": "Created Date",
+                    "display": "Created Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Modified Date",
+                    "display": "Modified Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Created By",
+                    "display": "Created By",
+                    "type": "user"
+                },
+                {
+                    "id": "_id",
+                    "display": "unique ID",
+                    "type": "text"
+                },
+                {
+                    "id": "Slug",
+                    "display": "Slug",
+                    "type": "text"
+                }
+            ]
+        },
+        "project": {
+            "display": "Project",
+            "fields": [
+                {
+                    "id": "workspace_custom_workspace",
+                    "display": "Workspace",
+                    "type": "custom.workspace"
+                },
+                {
+                    "id": "Created Date",
+                    "display": "Created Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Modified Date",
+                    "display": "Modified Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Created By",
+                    "display": "Created By",
+                    "type": "user"
+                },
+                {
+                    "id": "_id",
+                    "display": "unique ID",
+                    "type": "text"
+                },
+                {
+                    "id": "Slug",
+                    "display": "Slug",
+                    "type": "text"
+                }
+            ]
+        },
+        "team": {
+            "display": "Team",
+            "fields": [
+                {
+                    "id": "users_list_user",
+                    "display": "Users",
+                    "type": "list.user"
+                },
+                {
+                    "id": "workspace_custom_workspace",
+                    "display": "Workspace",
+                    "type": "custom.workspace"
+                },
+                {
+                    "id": "Created Date",
+                    "display": "Created Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Modified Date",
+                    "display": "Modified Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Created By",
+                    "display": "Created By",
+                    "type": "user"
+                },
+                {
+                    "id": "_id",
+                    "display": "unique ID",
+                    "type": "text"
+                },
+                {
+                    "id": "Slug",
+                    "display": "Slug",
+                    "type": "text"
+                }
+            ]
+        },
+        "website": {
+            "display": "Website",
+            "fields": [
+                {
+                    "id": "about_me_text",
+                    "display": "About me",
+                    "type": "text"
+                },
+                {
+                    "id": "avis_list_custom_avis",
+                    "display": "Avis",
+                    "type": "list.custom.avis"
+                },
+                {
+                    "id": "banniere_image",
+                    "display": "Banniere",
+                    "type": "image"
+                },
+                {
+                    "id": "description_text",
+                    "display": "Job Description",
+                    "type": "text"
+                },
+                {
+                    "id": "gallerie_list_image",
+                    "display": "Gallerie",
+                    "type": "list.image"
+                },
+                {
+                    "id": "logo_image",
+                    "display": "Logo",
+                    "type": "image"
+                },
+                {
+                    "id": "name_url__text",
+                    "display": "Name(URL)",
+                    "type": "text"
+                },
+                {
+                    "id": "photo_image",
+                    "display": "Photo",
+                    "type": "image"
+                },
+                {
+                    "id": "prestations_list_custom_prestations",
+                    "display": "Prestations",
+                    "type": "list.custom.prestations"
+                },
+                {
+                    "id": "publi__boolean",
+                    "display": "PubliÃ©",
+                    "type": "boolean"
+                },
+                {
+                    "id": "sections_displayed_list_option_os_site_sections",
+                    "display": "Sections Displayed",
+                    "type": "list.option.os_site_sections"
+                },
+                {
+                    "id": "theme_option_os_th_me",
+                    "display": "Theme",
+                    "type": "option.os_th_me"
+                },
+                {
+                    "id": "title_text",
+                    "display": "Title",
+                    "type": "text"
+                },
+                {
+                    "id": "workspace_custom_workspace",
+                    "display": "Workspace",
+                    "type": "custom.workspace"
+                },
+                {
+                    "id": "Created Date",
+                    "display": "Created Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Modified Date",
+                    "display": "Modified Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Created By",
+                    "display": "Created By",
+                    "type": "user"
+                },
+                {
+                    "id": "_id",
+                    "display": "unique ID",
+                    "type": "text"
+                },
+                {
+                    "id": "Slug",
+                    "display": "Slug",
+                    "type": "text"
+                }
+            ]
+        },
+        "websitesections": {
+            "display": "Website Sections",
+            "fields": [
+                {
+                    "id": "Created Date",
+                    "display": "Created Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Modified Date",
+                    "display": "Modified Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Created By",
+                    "display": "Created By",
+                    "type": "user"
+                },
+                {
+                    "id": "_id",
+                    "display": "unique ID",
+                    "type": "text"
+                },
+                {
+                    "id": "Slug",
+                    "display": "Slug",
+                    "type": "text"
+                }
+            ]
+        },
+        "workspace": {
+            "display": "Workspace",
+            "fields": [
+                {
+                    "id": "admin_user",
+                    "display": "Admin",
+                    "type": "user"
+                },
+                {
+                    "id": "deplacement_domicile_distance_number",
+                    "display": "Deplacement Domicile Distance",
+                    "type": "number"
+                },
+                {
+                    "id": "deplacement_domicile_endroit_text",
+                    "display": "Deplacement Domicile Endroit",
+                    "type": "text"
+                },
+                {
+                    "id": "fond_de_caisse_number",
+                    "display": "Fond de caisse",
+                    "type": "number"
+                },
+                {
+                    "id": "locaux_list_custom_locaux",
+                    "display": "Locaux",
+                    "type": "list.custom.locaux"
+                },
+                {
+                    "id": "name_text",
+                    "display": "Name",
+                    "type": "text"
+                },
+                {
+                    "id": "website_custom_website",
+                    "display": "Website",
+                    "type": "custom.website"
+                },
+                {
+                    "id": "Created Date",
+                    "display": "Created Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Modified Date",
+                    "display": "Modified Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Created By",
+                    "display": "Created By",
+                    "type": "user"
+                },
+                {
+                    "id": "_id",
+                    "display": "unique ID",
+                    "type": "text"
+                },
+                {
+                    "id": "Slug",
+                    "display": "Slug",
+                    "type": "text"
+                }
+            ]
+        },
+        "user": {
+            "display": "User",
+            "fields": [
+                {
+                    "id": "account_custom_account",
+                    "display": "Account",
+                    "type": "custom.account"
+                },
+                {
+                    "id": "m_tier_option_os_m_tiers",
+                    "display": "MÃ©tier",
+                    "type": "option.os_m_tiers"
+                },
+                {
+                    "id": "role_option_os_roles",
+                    "display": "Role",
+                    "type": "option.os_roles"
+                },
+                {
+                    "id": "workspace_custom_workspace",
+                    "display": "Workspace",
+                    "type": "custom.workspace"
+                },
+                {
+                    "id": "Created Date",
+                    "display": "Created Date",
+                    "type": "date"
+                },
+                {
+                    "id": "Modified Date",
+                    "display": "Modified Date",
+                    "type": "date"
+                },
+                {
+                    "id": "_id",
+                    "display": "unique ID",
+                    "type": "text"
+                },
+                {
+                    "id": "Slug",
+                    "display": "Slug",
+                    "type": "text"
+                }
+            ]
+        }
+    },
+    "app_data": {
+        "appname": "dev-51165",
+        "favicon": "https://s3.amazonaws.com/appforest_uf/f1530294839424x143528842134401200/Icon-no-clearspace.png",
+        "app_version": "test",
+        "use_captions_for_get": true
+    }
+}

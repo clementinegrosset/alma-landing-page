@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balma - Tableau de bord</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Iconify Icons -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    
+    <!-- Chart.js (v3 pour compatibilité) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* Polices */
+        .font-geist { font-family: 'Inter', sans-serif; }
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#F4D03F',
+                            500: '#C9A227',
+                            600: '#B7950B',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- 
+    =======================================================================
+    SECTION VARIABLES (DONNÉES BUBBLE)
+    =======================================================================
+    Injectez vos données Bubble ici.
+    
+    MÉTHODE pour les Bookings :
+      Do a Search for Bookings (Date > Current Date, Sorted by Date, :items until #2) :formatted as text
+      
+      → Contenu de chaque item (tous les champs, séparés par ;;) :
+        This Booking's Date Begin:formatted as 2026-02-12T08:48:23.342Z
+        ;;This Booking's Date End:formatted as 2026-02-12T08:48:23.342Z
+        ;;This Booking's Prix_Payé
+        ;;This Booking's Statut's Display
+        ;;This Booking's Client's 🤖 Full Name
+        ;;This Booking's Client's Mail
+        ;;This Booking's Client's Téléphone
+        ;;This Booking's Prestation's Nom
+        ;;This Booking's Prestation's Prix
+        ;;This Booking's Prestation's Durée Heure
+        ;;This Booking's Prestation's Durée Min
+      
+      → Séparateur entre items : |
+    -->
+    <script>
+        // =====================================================
+        // VARIABLES À REMPLIR AVEC VOS DONNÉES BUBBLE
+        // =====================================================
+
+        // ── 1. UTILISATEUR ──
+        // Format : Prénom Nom;Métier (une seule ligne)
+        // Exemple : Marie Dupont;Esthéticienne
+        var USER_LINE = "Prénom Nom;Métier";
+
+        // ── 2. CLIENTS ──
+        // Source : Do a Search for Clients :formatted as text (séparateur |)
+        // Chaque item = date_création (ISO) ;; full_name
+        // Ex: "2026-01-05T10:00:00.000Z;;Sophie Martin|2026-02-01T09:00:00.000Z;;Laura Dubois"
+        var CLIENTS_DATA = "2025-06-15T10:00:00.000Z;;Sophie Martin|2025-09-20T09:00:00.000Z;;Laura Dubois|2026-01-10T14:00:00.000Z;;Emma Petit|2026-02-01T11:00:00.000Z;;Julie Moreau|2026-02-08T16:00:00.000Z;;Camille Bernard";
+
+        // ── 3. BOOKINGS (1 seule variable avec TOUS les champs) ──
+        // Source : Do a Search for Bookings :formatted as text (séparateur |)
+        // IMPORTANT : inclure TOUS les bookings du workspace.
+        //   Le CA et les graphiques sont calculés automatiquement depuis ces données.
+        // Ordre des champs dans chaque item (séparés par ;;) :
+        //   date_begin ;; date_end ;; prix_payé ;; statut ;; client_full_name ;; client_mail ;; client_tel ;; presta_nom ;; presta_prix ;; presta_duree_h ;; presta_duree_min
+        var BOOKINGS_DATA = "2026-02-11T14:30:00.000Z;;2026-02-11T15:30:00.000Z;;65;;Confirmé;;Sophie Martin;;sophie@mail.com;;0612345678;;Soin Visage Éclat;;65;;1;;0|2026-02-11T16:00:00.000Z;;2026-02-11T17:00:00.000Z;;45;;En attente;;Laura Dubois;;laura@mail.com;;0698765432;;Manucure Semipermanente;;45;;1;;0";
+
+
+        // =====================================================
+        // NE PAS MODIFIER EN DESSOUS
+        // Parsing automatique des données
+        // =====================================================
+
+        // Formatage des nombres : 1192 → "1,192"
+        function formatNumber(val) {
+            var n = parseFloat(String(val).replace(/[^0-9.\-]/g, ''));
+            if (isNaN(n)) return val;
+            return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+        }
+
+        // Parse USER_LINE (format: "Prénom Nom;Métier")
+        var _ul = (USER_LINE || "").split(";");
+        var _nameParts = (_ul[0] || "").trim().split(/\s+/);
+        var USER_PRENOM = _nameParts[0] || "";
+        var USER_NOM    = _nameParts.length > 1 ? _nameParts.slice(1).join(" ") : "";
+        var USER_METIER = (_ul[1] || "").trim();
+
+        // Parse les bookings
+        function parseBookings(raw) {
+            if (!raw || raw.trim() === "" || raw.indexOf("XXX") !== -1) return [];
+            return raw.split("|").map(function(item) {
+                var f = item.split(";;").map(function(s) { return s.trim(); });
+                // f[0]  = date_begin (ISO: 2026-02-12T08:48:23.342Z)
+                // f[1]  = date_end   (ISO)
+                // f[2]  = prix_payé
+                // f[3]  = statut
+                // f[4]  = client_full_name
+                // f[5]  = client_mail
+                // f[6]  = client_tel
+                // f[7]  = prestation_nom
+                // f[8]  = prestation_prix
+                // f[9]  = prestation_duree_h
+                // f[10] = prestation_duree_min
+                var dateBegin = new Date(f[0]);
+                var now = new Date();
+                var isToday = dateBegin.toDateString() === now.toDateString();
+                var isTomorrow = dateBegin.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+                var dayLabel = isToday ? "Aujourd'hui" : isTomorrow ? "Demain" : dateBegin.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+                var timeLabel = dateBegin.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                var statusColor = "blue";
+                if (f[3] === "En attente") statusColor = "orange";
+                if (f[3] === "Annulé") statusColor = "red";
+
+                // Extraire les initiales depuis le full name (ex: "Sophie Martin" → "SM")
+                var fullName = f[4] || "";
+                var nameParts = fullName.split(" ");
+                var initials = nameParts.length >= 2
+                    ? nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)
+                    : fullName.charAt(0);
+                // Extraire le prénom (premier mot du full name)
+                var firstName = nameParts[0] || "";
+
+                return {
+                    // Données brutes
+                    dateBegin: dateBegin,
+                    dateEnd: f[1] ? new Date(f[1]) : null,
+                    prix: parseFloat(f[2]) || 0,
+                    statut: f[3] || "",
+                    clientFullName: fullName,
+                    clientFirstName: firstName,
+                    clientMail: f[5] || "",
+                    clientTel: f[6] || "",
+                    prestaNom: f[7] || "",
+                    prestaPrix: parseFloat(f[8]) || 0,
+                    prestaDureeH: parseInt(f[9]) || 0,
+                    prestaDureeMin: parseInt(f[10]) || 0,
+                    // Données calculées pour l'affichage
+                    initials: initials,
+                    fullName: fullName,
+                    time: timeLabel,
+                    day: dayLabel,
+                    statusColor: statusColor
+                };
+            });
+        }
+
+        // Parse les clients
+        function parseClients(raw) {
+            if (!raw || raw.trim() === "" || raw.indexOf("XXX") !== -1) return [];
+            return raw.split("|").map(function(item) {
+                var f = item.split(";;").map(function(s) { return s.trim(); });
+                return { createdDate: new Date(f[0]), fullName: f[1] || "" };
+            });
+        }
+
+        var clients = parseClients(CLIENTS_DATA);
+
+        var bookings = parseBookings(BOOKINGS_DATA);
+
+        // Trier par date croissante
+        bookings.sort(function(a, b) { return a.dateBegin - b.dateBegin; });
+
+        // Prochain RDV = premier booking dans le futur
+        var now = new Date();
+        var futureBookings = bookings.filter(function(b) { return b.dateBegin >= now; });
+        var nextBooking = futureBookings.length > 0 ? futureBookings[0] : null;
+
+        // ── CALCUL DU CA (depuis prix_payé des bookings) ──
+        var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        var startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        var startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        var endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+
+        var caMoisActuel = 0;
+        var caMoisDernier = 0;
+        bookings.forEach(function(b) {
+            if (b.dateBegin >= startOfMonth) caMoisActuel += b.prix;
+            if (b.dateBegin >= startOfLastMonth && b.dateBegin <= endOfLastMonth) caMoisDernier += b.prix;
+        });
+        var caEvolution = caMoisDernier > 0
+            ? Math.round((caMoisActuel - caMoisDernier) / caMoisDernier * 100)
+            : 0;
+
+        // ── CALCUL DES CLIENTS ──
+        var clientsTotal = clients.length;
+        var clientsNouveauxCeMois = clients.filter(function(c) {
+            return c.createdDate >= startOfMonth;
+        }).length;
+        var clientsNouveauxMoisDernier = clients.filter(function(c) {
+            return c.createdDate >= startOfLastMonth && c.createdDate <= endOfLastMonth;
+        }).length;
+        var clientsEvolution = clientsNouveauxMoisDernier > 0
+            ? Math.round((clientsNouveauxCeMois - clientsNouveauxMoisDernier) / clientsNouveauxMoisDernier * 100)
+            : (clientsNouveauxCeMois > 0 ? 100 : 0);
+
+        // ── CALCUL DES GRAPHIQUES ──
+        var MOIS_FR = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Août","Sep","Oct","Nov","Déc"];
+
+        // Graphique par mois glissants (utilisé pour "12 derniers mois" et "6 derniers mois")
+        function computeChartByMonth(allBookings, nbMois) {
+            var buckets = [];
+            for (var i = nbMois - 1; i >= 0; i--) {
+                var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                var mStart = new Date(d.getFullYear(), d.getMonth(), 1);
+                var mEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59);
+                buckets.push({ label: MOIS_FR[d.getMonth()], start: mStart, end: mEnd, total: 0 });
+            }
+            allBookings.forEach(function(b) {
+                for (var i = 0; i < buckets.length; i++) {
+                    if (b.dateBegin >= buckets[i].start && b.dateBegin <= buckets[i].end) {
+                        buckets[i].total += b.prix;
+                        break;
+                    }
+                }
+            });
+            return {
+                labels: buckets.map(function(bk) { return bk.label; }),
+                values: buckets.map(function(bk) { return bk.total; })
+            };
+        }
+
+        // Graphique année en cours (jan → déc de l'année courante)
+        function computeChartYear(allBookings) {
+            var year = now.getFullYear();
+            var buckets = [];
+            for (var m = 0; m < 12; m++) {
+                var mStart = new Date(year, m, 1);
+                var mEnd = new Date(year, m + 1, 0, 23, 59, 59);
+                buckets.push({ label: MOIS_FR[m], start: mStart, end: mEnd, total: 0 });
+            }
+            allBookings.forEach(function(b) {
+                if (b.dateBegin.getFullYear() === year) {
+                    var m = b.dateBegin.getMonth();
+                    buckets[m].total += b.prix;
+                }
+            });
+            return {
+                labels: buckets.map(function(bk) { return bk.label; }),
+                values: buckets.map(function(bk) { return bk.total; })
+            };
+        }
+
+        // Graphique 30 derniers jours (groupé par semaine)
+        function computeChart30d(allBookings) {
+            var day30ago = new Date(today.getTime() - 30 * 86400000);
+            var numBuckets = 5;
+            var bucketSize = 6;
+            var buckets = [];
+            for (var i = 0; i < numBuckets; i++) {
+                var start = new Date(day30ago.getTime() + i * bucketSize * 86400000);
+                var end = (i === numBuckets - 1)
+                    ? new Date(today.getTime() + 86400000)
+                    : new Date(day30ago.getTime() + (i + 1) * bucketSize * 86400000);
+                buckets.push({ start: start, end: end, total: 0 });
+            }
+            allBookings.forEach(function(b) {
+                if (b.dateBegin >= day30ago && b.dateBegin <= today) {
+                    for (var i = 0; i < buckets.length; i++) {
+                        if (b.dateBegin >= buckets[i].start && b.dateBegin < buckets[i].end) {
+                            buckets[i].total += b.prix;
+                            break;
+                        }
+                    }
+                }
+            });
+            return {
+                labels: buckets.map(function(bk) {
+                    return bk.start.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+                }),
+                values: buckets.map(function(bk) { return bk.total; })
+            };
+        }
+
+        var chartYear = computeChartYear(bookings);
+        var chart12m  = computeChartByMonth(bookings, 12);
+        var chart6m   = computeChartByMonth(bookings, 6);
+        var chart30d  = computeChart30d(bookings);
+
+        window.dashboardData = {
+            user: {
+                initials: USER_PRENOM.charAt(0) + USER_NOM.charAt(0),
+                fullName: USER_PRENOM + " " + USER_NOM.charAt(0) + ".",
+                role: USER_METIER,
+                firstName: USER_PRENOM
+            },
+            kpis: {
+                nextRdv: {
+                    time: nextBooking ? nextBooking.time : "--",
+                    day: nextBooking ? nextBooking.day : "",
+                    details: nextBooking ? nextBooking.prestaNom + " • " + nextBooking.clientFirstName : "Aucun RDV"
+                },
+                revenue: {
+                    amount: caMoisActuel,
+                    growth: (caEvolution >= 0 ? "+" : "") + caEvolution + "%",
+                    lastMonth: caMoisDernier
+                },
+                clients: {
+                    newThisMonth: clientsNouveauxCeMois,
+                    total: clientsTotal,
+                    growth: (clientsEvolution >= 0 ? "+" : "") + clientsEvolution + "%",
+                    growthVal: clientsEvolution
+                }
+            },
+            chart: {
+                "year": chartYear,
+                "12m":  chart12m,
+                "6m":   chart6m,
+                "30d":  chart30d
+            },
+            appointments: futureBookings.map(function(b) {
+                return {
+                    initials: b.initials,
+                    name: b.fullName,
+                    service: b.prestaNom,
+                    time: b.time,
+                    status: b.statut,
+                    statusColor: b.statusColor
+                };
+            })
+        };
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-geist antialiased h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex-col hidden md:flex z-10">
+        <div class="h-16 flex items-center px-6 border-b border-gray-200">
+            <span class="font-space font-bold text-xl tracking-tight">balma<span class="text-gold-500">.</span></span>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+            <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 bg-gold-400/10 text-gold-600 rounded-lg transition-colors">
+                <iconify-icon icon="lucide:layout-grid" width="18"></iconify-icon>
+                <span class="text-sm font-medium">Tableau de bord</span>
+            </a>
+            <a href="calendar-bubble.html" class="flex items-center gap-3 px-3 py-2 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                <iconify-icon icon="lucide:calendar" width="18"></iconify-icon>
+                <span class="text-sm font-medium">Calendrier</span>
+            </a>
+            <a href="clients.html" class="flex items-center gap-3 px-3 py-2 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                <iconify-icon icon="lucide:users" width="18"></iconify-icon>
+                <span class="text-sm font-medium">Clients</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                <iconify-icon icon="lucide:scissors" width="18"></iconify-icon>
+                <span class="text-sm font-medium">Prestations</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-200">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-gold-100 text-gold-600 flex items-center justify-center text-xs font-bold" id="user-initials">
+                    --
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate" id="user-fullname">--</p>
+                    <p class="text-xs text-gray-500 truncate" id="user-role">--</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+        
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto">
+            
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                
+                <!-- KPI 1: Prochain RDV -->
+                <div id="kpi-next-rdv-card" class="bg-white border border-gray-200 p-5 rounded-2xl relative overflow-hidden group shadow-sm">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <iconify-icon icon="lucide:clock" width="64"></iconify-icon>
+                    </div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                            <iconify-icon icon="lucide:calendar-clock" width="20"></iconify-icon>
+                        </div>
+                        <span class="text-gray-500 text-sm font-medium">Prochain RDV</span>
+                    </div>
+                    <!-- Contenu normal (masqué si vide) -->
+                    <div id="kpi-next-rdv-content">
+                        <div class="mb-1">
+                            <span id="kpi-next-rdv-time" class="text-2xl font-bold text-gray-900">--</span>
+                            <span id="kpi-next-rdv-day" class="text-gray-500 text-sm ml-1">--</span>
+                        </div>
+                        <p id="kpi-next-rdv-details" class="text-gray-600 text-sm truncate">--</p>
+                    </div>
+                    <!-- Empty state -->
+                    <div id="kpi-next-rdv-empty" class="hidden">
+                        <p class="text-gray-400 text-sm">Aucun RDV à venir</p>
+                        <p class="text-gray-300 text-xs mt-1">Votre agenda est libre</p>
+                    </div>
+                </div>
+
+                <!-- KPI 2: Chiffre d'affaires -->
+                <div class="bg-white border border-gray-200 p-5 rounded-2xl relative overflow-hidden group shadow-sm">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <iconify-icon icon="lucide:trending-up" width="64"></iconify-icon>
+                    </div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="p-2 bg-green-50 text-green-600 rounded-lg">
+                            <iconify-icon icon="lucide:euro" width="20"></iconify-icon>
+                        </div>
+                        <span class="text-gray-500 text-sm font-medium">CA ce mois</span>
+                    </div>
+                    <div class="mb-1 flex items-baseline gap-2">
+                        <span id="kpi-revenue-amount" class="text-2xl font-bold text-gray-900">--</span>
+                        <span id="kpi-revenue-growth" class="text-xs font-medium flex items-center px-1.5 py-0.5 rounded-full">
+                            <iconify-icon id="kpi-revenue-growth-icon" icon="lucide:arrow-up-right" width="12"></iconify-icon>
+                            <span id="kpi-revenue-growth-val">--</span>
+                        </span>
+                    </div>
+                    <p class="text-gray-500 text-xs">vs <span id="kpi-revenue-comparison">--</span> le mois dernier</p>
+                </div>
+
+                <!-- KPI 3: Nouveaux clients -->
+                <div class="bg-white border border-gray-200 p-5 rounded-2xl relative overflow-hidden group shadow-sm">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <iconify-icon icon="lucide:user-plus" width="64"></iconify-icon>
+                    </div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                            <iconify-icon icon="lucide:user-plus" width="20"></iconify-icon>
+                        </div>
+                        <span class="text-gray-500 text-sm font-medium">Nouveaux clients</span>
+                    </div>
+                    <div class="mb-1 flex items-baseline gap-2">
+                        <span id="kpi-clients-new-count" class="text-2xl font-bold text-gray-900">--</span>
+                        <span id="kpi-clients-growth" class="text-xs font-medium flex items-center px-1.5 py-0.5 rounded-full">
+                            <iconify-icon id="kpi-clients-growth-icon" icon="lucide:arrow-up-right" width="12"></iconify-icon>
+                            <span id="kpi-clients-growth-val">--</span>
+                        </span>
+                    </div>
+                    <p class="text-gray-500 text-xs"><span id="kpi-clients-total">--</span> clients au total</p>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                
+                <!-- Main Chart -->
+                <div class="lg:col-span-2 bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-space font-medium text-gray-900">Évolution du Chiffre d'Affaires</h3>
+                        <div class="relative">
+                            <select id="chart-period-select" class="appearance-none bg-white hover:bg-gray-50 text-gray-700 text-xs font-medium border border-gray-200 rounded-lg pl-3 pr-8 py-2 focus:ring-2 focus:ring-gold-400/20 focus:border-gold-400 cursor-pointer outline-none transition-all shadow-sm">
+                                <option value="year">Cette année</option>
+                                <option value="12m">12 derniers mois</option>
+                                <option value="6m">6 derniers mois</option>
+                                <option value="30d">30 derniers jours</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                                <iconify-icon icon="lucide:chevron-down" width="14"></iconify-icon>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="relative w-full" style="min-height: 256px; height: 256px;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Upcoming Appointments List -->
+                <div class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-space font-medium text-gray-900">Prochains RDV</h3>
+                        <a href="#" class="text-xs text-gold-600 hover:text-gold-500 font-medium">Tout voir</a>
+                    </div>
+                    
+                    <div id="appointments-list" class="space-y-4">
+                        <!-- Liste générée dynamiquement via JS -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const data = window.dashboardData;
+
+            // Peupler les KPIs
+            var hasNextRdv = data.appointments && data.appointments.length > 0;
+            if (hasNextRdv) {
+                document.getElementById('kpi-next-rdv-time').textContent = data.kpis.nextRdv.time;
+                document.getElementById('kpi-next-rdv-day').textContent = data.kpis.nextRdv.day;
+                document.getElementById('kpi-next-rdv-details').textContent = data.kpis.nextRdv.details;
+            } else {
+                document.getElementById('kpi-next-rdv-content').classList.add('hidden');
+                document.getElementById('kpi-next-rdv-empty').classList.remove('hidden');
+            }
+
+            document.getElementById('kpi-revenue-amount').textContent = formatNumber(data.kpis.revenue.amount) + ' €';
+            document.getElementById('kpi-revenue-growth-val').textContent = data.kpis.revenue.growth;
+            document.getElementById('kpi-revenue-comparison').textContent = formatNumber(data.kpis.revenue.lastMonth) + ' €';
+
+            // Couleur du badge évolution (vert si positif, rouge si négatif, gris si 0)
+            var growthEl = document.getElementById('kpi-revenue-growth');
+            var growthIcon = document.getElementById('kpi-revenue-growth-icon');
+            var growthVal = parseInt(data.kpis.revenue.growth);
+            if (growthVal > 0) {
+                growthEl.classList.add('text-green-600', 'bg-green-50');
+                growthIcon.setAttribute('icon', 'lucide:arrow-up-right');
+            } else if (growthVal < 0) {
+                growthEl.classList.add('text-red-600', 'bg-red-50');
+                growthIcon.setAttribute('icon', 'lucide:arrow-down-right');
+            } else {
+                growthEl.classList.add('text-gray-500', 'bg-gray-100');
+                growthIcon.setAttribute('icon', 'lucide:minus');
+            }
+
+            document.getElementById('kpi-clients-new-count').textContent = formatNumber(data.kpis.clients.newThisMonth);
+            document.getElementById('kpi-clients-growth-val').textContent = data.kpis.clients.growth;
+            document.getElementById('kpi-clients-total').textContent = formatNumber(data.kpis.clients.total);
+
+            // Couleur du badge évolution clients
+            var clientsGrowthEl = document.getElementById('kpi-clients-growth');
+            var clientsGrowthIcon = document.getElementById('kpi-clients-growth-icon');
+            var clientsGrowthVal = data.kpis.clients.growthVal;
+            if (clientsGrowthVal > 0) {
+                clientsGrowthEl.classList.add('text-green-600', 'bg-green-50');
+                clientsGrowthIcon.setAttribute('icon', 'lucide:arrow-up-right');
+            } else if (clientsGrowthVal < 0) {
+                clientsGrowthEl.classList.add('text-red-600', 'bg-red-50');
+                clientsGrowthIcon.setAttribute('icon', 'lucide:arrow-down-right');
+            } else {
+                clientsGrowthEl.classList.add('text-gray-500', 'bg-gray-100');
+                clientsGrowthIcon.setAttribute('icon', 'lucide:minus');
+            }
+
+            // Générer la liste des RDV
+            const appointmentsList = document.getElementById('appointments-list');
+            if (data.appointments && data.appointments.length > 0) {
+                appointmentsList.innerHTML = data.appointments.map(apt => {
+                    const statusClass = apt.statusColor === 'orange' ? 'bg-orange-50 text-orange-600' : 
+                                        apt.statusColor === 'green' ? 'bg-green-50 text-green-600' : 
+                                        'bg-blue-50 text-blue-600';
+                    return `
+                        <div class="flex items-start gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+                            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-600 flex-shrink-0">
+                                ${apt.initials}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900 truncate">${apt.name}</p>
+                                <p class="text-xs text-gray-500">${apt.service}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold text-gray-900">${apt.time}</p>
+                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-medium ${statusClass}">${apt.status}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                appointmentsList.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-8 text-center">
+                        <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                            <iconify-icon icon="lucide:calendar-off" width="24" class="text-gray-300"></iconify-icon>
+                        </div>
+                        <p class="text-sm font-medium text-gray-400">Aucun rendez-vous à venir</p>
+                        <p class="text-xs text-gray-300 mt-1">Les prochains RDV apparaîtront ici</p>
+                    </div>
+                `;
+            }
+
+            // Configurer le graphique (setTimeout au lieu de requestAnimationFrame
+            // car rAF ne s'exécute pas dans les onglets inactifs / iframes Bubble)
+            setTimeout(function() {
+            Chart.defaults.color = '#6b7280';
+            Chart.defaults.borderColor = '#e5e7eb';
+            Chart.defaults.font.family = "'Inter', sans-serif";
+
+            const canvas = document.getElementById('revenueChart');
+            if (!canvas) return;
+            const ctxRevenue = canvas.getContext('2d');
+            const gradientRevenue = ctxRevenue.createLinearGradient(0, 0, 0, 400);
+            gradientRevenue.addColorStop(0, 'rgba(244, 208, 63, 0.4)');
+            gradientRevenue.addColorStop(1, 'rgba(244, 208, 63, 0)');
+
+            var chartData = data.chart["year"];
+            var revenueChart = new Chart(ctxRevenue, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Chiffre d\'Affaires (€)',
+                        data: chartData.values,
+                        borderColor: '#C9A227',
+                        backgroundColor: gradientRevenue,
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#C9A227',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: '#ffffff',
+                            titleColor: '#111827',
+                            bodyColor: '#4b5563',
+                            borderColor: '#e5e7eb',
+                            borderWidth: 1,
+                            padding: 10,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) { return formatNumber(context.parsed.y) + ' €'; }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { borderDash: [4, 4], drawBorder: false },
+                            ticks: { callback: function(value) { return formatNumber(value) + '€'; } }
+                        },
+                        x: { grid: { display: false, drawBorder: false } }
+                    },
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                }
+            });
+
+            // Changer de période via le dropdown
+            document.getElementById('chart-period-select').addEventListener('change', function() {
+                var period = this.value;
+                var newData = data.chart[period];
+                if (!newData) return;
+                revenueChart.data.labels = newData.labels;
+                revenueChart.data.datasets[0].data = newData.values;
+                revenueChart.update();
+            });
+            }, 100);
+        });
+    </script>
+</body>
+</html>

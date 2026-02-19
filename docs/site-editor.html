@@ -1,18 +1,27 @@
 <!DOCTYPE html>
 <!--
-  BUBBLE — Tes 3 variables vont ici (dans <head>) :
-  • VARIABLE 1 (website)     : LIGNE 78 — <script id="website-details-raw">__WEBSITE_DETAILS__</script>
-  • VARIABLE 2 (prestations) : LIGNE 81 — <script id="prestations-raw">__PRESTATIONS__</script>
-  • VARIABLE 3 (avis)        : LIGNE 84 — <script id="avis-raw">__AVIS__</script>
-  Remplacer __WEBSITE_DETAILS__, __PRESTATIONS__, __AVIS__ par tes formules Bubble (JSON).
+  BUBBLE — 5 variables dans <body> (compatibilité Bubble HTML element) :
+  • VARIABLE 1 (website)     : id="website-details-raw" — objet JSON
+  • VARIABLE 2 (prestations) : id="prestations-raw" — tableau JSON ou séparées par ;;
+  • VARIABLE 3 (avis)        : id="avis-raw" — tableau JSON ou séparés par ;;
+  • VARIABLE 4 (editable-view) : id="editable-view-raw" — "true"/"false"
+    true = vue esthéticienne | false = vue client
+  • VARIABLE 5 (edit-mode) : id="edit-mode-raw" — "true"/"false"
+    true = mode edit | false = view-only (effet seulement si editable-view=true)
 -->
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Balma - Éditeur de Site</title>
+</head>
+<body class="bg-gray-50 text-gray-900 font-geist antialiased min-h-screen overflow-y-auto">
 
+    <!-- CDN et fonts dans body pour compatibilité Bubble HTML element -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { gold: { 400: '#F4D03F', 500: '#C9A227', 600: '#B7950B' } } } } };
+    </script>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,49 +55,46 @@
         ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
         .toggle-checkbox:checked { right: 0; border-color: #C9A227; }
         .toggle-checkbox:checked + .toggle-label { background-color: #C9A227; }
-        .editable-field:hover { outline: 1px dashed #C9A227; background-color: rgba(201, 162, 39, 0.05); cursor: text; border-radius: 4px; }
-        .editable-field:focus { outline: 2px solid #C9A227; background-color: white; border-radius: 4px; }
-        body:not(.view-only) .editable-field { outline: 1px dashed #C9A227; background-color: rgba(201, 162, 39, 0.05); border-radius: 4px; }
-        body:not(.view-only) .editable-field:focus { outline: 2px solid #C9A227; background-color: white; }
-        .view-only .edit-only { display: none !important; }
-        .view-only .editable-field { cursor: default; }
-        body:not(.view-only) .edit-hide { display: none !important; }
-        .section-separator { height: 0; border: none; border-top: 1px dashed var(--border-color); margin: 0; }
-        body.view-only .section-separator { display: none !important; }
-        body:not(.view-only) #site-preview section[class*="border-b"] { border-bottom: none !important; }
+        /* Par défaut : contrôles d'édition masqués (!important pour écraser Tailwind CDN) */
+        .edit-only { display: none !important; }
+        .editable-field { cursor: default; }
+        /* Mode édition actif (vue esthéticienne + edit=true) : afficher les contrôles */
+        body.edit-active .edit-only { display: block !important; }
+        body.edit-active .edit-only.flex { display: flex !important; }
+        body.edit-active .edit-only.hidden,
+        body.edit-active input[type="file"].edit-only { display: none !important; }
+        body.edit-active .edit-hide { display: none !important; }
+        body.edit-active .editable-field { outline: 1px dashed #C9A227; background-color: rgba(201, 162, 39, 0.05); cursor: text; border-radius: 4px; }
+        body.edit-active .editable-field:focus { outline: 2px solid #C9A227; background-color: white; border-radius: 4px; }
+        /* Séparateurs de sections : visibles uniquement en mode édition */
+        .section-separator { height: 0; border: none; border-top: 1px dashed var(--border-color); margin: 0; display: none !important; }
+        body.edit-active .section-separator { display: block !important; }
+        body.edit-active #site-preview section[class*="border-b"] { border-bottom: none !important; }
         .masonry-grid { column-count: 2; column-gap: 1rem; }
         @media (min-width: 768px) { .masonry-grid { column-count: 3; } }
         .masonry-item { break-inside: avoid; margin-bottom: 1rem; }
+        .prestations-hidden { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease-out, opacity 0.4s ease-out, margin-top 0.4s ease-out, padding-top 0.4s ease-out, padding-bottom 0.4s ease-out; padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; }
+        .prestations-visible { max-height: 500px; opacity: 1; transition: max-height 0.5s ease-in, opacity 0.5s ease-in, margin-top 0.5s ease-in, padding-top 0.5s ease-in, padding-bottom 0.5s ease-in; margin-top: 0.75rem; }
+        .prestation-visible-item { display: block; }
     </style>
 
-    <script>
-        tailwind.config = { theme: { extend: { colors: { gold: { 400: '#F4D03F', 500: '#C9A227', 600: '#B7950B' } } } } };
-    </script>
-
     <!-- ============================================================================== -->
-    <!-- BUBBLE — OÙ METTRE TES 3 VARIABLES (remplacer le contenu entre les balises)   -->
-    <!-- ============================================================================== -->
-    <!-- VARIABLE 1 — Détails du website      : LIGNE 78, id="website-details-raw" -->
-    <!-- VARIABLE 2 — Liste des prestations  : LIGNE 81, id="prestations-raw"     -->
-    <!-- VARIABLE 3 — Liste des avis          : LIGNE 84, id="avis-raw"            -->
-    <!-- Format pour les 3 : JSON. En Bubble : replace(html, "__WEBSITE_DETAILS__", …) -->
+    <!-- BUBBLE — 5 VARIABLES (div hidden, compatibles Bubble HTML element)             -->
     <!-- ============================================================================== -->
 
-    <!-- ▼▼▼ VARIABLE 1 — Détails du website (objet JSON) — LIGNE 78 — Remplacer par ta variable Bubble en prod ▼▼▼ -->
-    <!-- Format accepté : Sections_display peut être un tableau ["about","avis","galerie"] ou une chaîne "Header (obligatoire), Prestations (obligatoire), galerie, about" -->
-    <!-- Format accepté : Galerie peut être un tableau ["url1","url2"] ou une chaîne "url1, url2" -->
-    <script type="text/plain" id="website-details-raw">VAR Website VAR1's text</script>
+    <div id="website-details-raw" style="display:none">VAR Website VAR1's text</div>
+    <div id="prestations-raw" style="display:none">{"nom":"Make up jour","prix":"100","categorie":"Maquillage","duree_heure":"1","duree_min":"0","adresse":"","is_local":false};;{"nom":"Coiffure sur-mesure","prix":"85","categorie":"Coiffure","duree_heure":"1","duree_min":"30","adresse":"12 rue de la Paix, Paris","is_local":true};;{"nom":"Massage relaxant","prix":"90","categorie":"Massage","duree_heure":"1","duree_min":"0","adresse":"","is_local":false}</div>
+    <div id="avis-raw" style="display:none">{"nom":"Léa M.","content":"Un moment magique, je suis ressortie détendue et ma peau est rayonnante. Merci !","etoile":5};;{"nom":"Claire D.","content":"Très professionnelle et à l'écoute. Le salon est magnifique.","etoile":5}</div>
+    <div id="editable-view-raw" style="display:none">true</div>
+    <div id="edit-mode-raw" style="display:none">true</div>
 
-    <!-- ▼▼▼ VARIABLE 2 — Liste des prestations (tableau JSON) — LIGNE 81 — Remplacer par ta variable Bubble en prod ▼▼▼ -->
-    <script type="text/plain" id="prestations-raw">[{"nom":"Make up jour","prix":"100","categorie":"Maquillage","duree_heure":"1","duree_min":"0","adresse":"","is_local":false},{"nom":"Coiffure sur-mesure","prix":"85","categorie":"Coiffure","duree_heure":"1","duree_min":"30","adresse":"12 rue de la Paix, Paris","is_local":true},{"nom":"Massage relaxant","prix":"90","categorie":"Massage","duree_heure":"1","duree_min":"0","adresse":"","is_local":false}]</script>
-
-    <!-- ▼▼▼ VARIABLE 3 — Liste des avis (tableau JSON) — LIGNE 84 — Remplacer par ta variable Bubble en prod ▼▼▼ -->
-    <script type="text/plain" id="avis-raw">[{"nom":"Léa M.","content":"Un moment magique, je suis ressortie détendue et ma peau est rayonnante. Merci !","etoile":5},{"nom":"Claire D.","content":"Très professionnelle et à l'écoute. Le salon est magnifique.","etoile":5}]</script>
     <script>
         (function(){
             function getRaw(id) {
                 var el = document.getElementById(id);
-                var raw = (el && el.textContent) ? el.textContent.trim() : '';
+                if (!el) return '';
+                var raw = (el.value !== undefined && el.value !== '') ? el.value : (el.textContent || '');
+                raw = raw.trim();
                 return (raw && raw.indexOf('__') === 0) ? '' : raw;
             }
             function parseJson(id, fallback) {
@@ -96,13 +102,34 @@
                 if (!raw) return fallback;
                 try { return JSON.parse(raw); } catch (e) { return fallback; }
             }
+            // Parse un champ qui peut être un tableau JSON, des objets séparés par ;; ou un objet unique
+            function parseList(id, fallback) {
+                var raw = getRaw(id);
+                if (!raw) return fallback;
+                if (raw.trim().indexOf('[') === 0) {
+                    try { return JSON.parse(raw); } catch (e) { return fallback; }
+                }
+                if (raw.indexOf(';;') !== -1) {
+                    var parts = raw.split(';;'), result = [];
+                    for (var i = 0; i < parts.length; i++) {
+                        var part = parts[i].trim();
+                        if (!part) continue;
+                        try { result.push(JSON.parse(part)); } catch (e) {}
+                    }
+                    return result;
+                }
+                try {
+                    var single = JSON.parse(raw);
+                    return Array.isArray(single) ? single : [single];
+                } catch (e) { return fallback; }
+            }
             window.WEBSITE_DETAILS = parseJson('website-details-raw', {});
-            window.PRESTATIONS_LIST = parseJson('prestations-raw', []);
-            window.AVIS_LIST = parseJson('avis-raw', []);
+            window.PRESTATIONS_LIST = parseList('prestations-raw', []);
+            window.AVIS_LIST = parseList('avis-raw', []);
+            // parseList est réutilisée dans applyWebsiteDataFromString
+            window._parseList = parseList;
         })();
     </script>
-</head>
-<body class="bg-gray-50 text-gray-900 font-geist antialiased min-h-screen overflow-y-auto">
 
     <main class="min-h-full">
         <div class="bg-gray-100 p-4 md:p-8 pb-12">
@@ -148,8 +175,8 @@
                         </div>
 
                         <div class="max-w-lg w-full">
-                            <h2 id="Titre" contenteditable="true" class="editable-field font-space font-bold theme-text-primary mb-2 px-2 py-1 text-2xl md:text-3xl tracking-tight" data-placeholder="Nom du salon ou Prénom Nom">Nom du salon ou Prénom Nom</h2>
-                            <p id="Description" contenteditable="true" class="editable-field font-geist theme-text-secondary text-base leading-relaxed px-2 py-1" data-placeholder="Courte description de votre activité">Courte description de votre activité</p>
+                            <h2 id="Titre" contenteditable="false" class="editable-field font-space font-bold theme-text-primary mb-2 px-2 py-1 text-2xl md:text-3xl tracking-tight" data-placeholder="Nom du salon ou Prénom Nom">Nom du salon ou Prénom Nom</h2>
+                            <p id="Description" contenteditable="false" class="editable-field font-geist theme-text-secondary text-base leading-relaxed px-2 py-1" data-placeholder="Courte description de votre activité">Courte description de votre activité</p>
                         </div>
                     </div>
                 </section>
@@ -172,10 +199,10 @@
                 <section class="relative border-b theme-border transition-all duration-300" id="section-about">
                     <div class="edit-only absolute top-4 right-6 z-10 flex items-center gap-2 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
                         <span class="text-[10px] uppercase font-bold text-gray-400">Visible</span>
-                        <div class="relative inline-block w-8 h-4 align-middle select-none">
+                        <label for="Section_about_visible" class="relative inline-block w-8 h-4 align-middle select-none cursor-pointer">
                             <input type="checkbox" id="Section_about_visible" checked onclick="toggleSection('about-content', this)" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer transition-all duration-300"/>
-                            <label class="toggle-label block overflow-hidden h-4 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></label>
-                        </div>
+                            <span class="toggle-label block overflow-hidden h-4 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></span>
+                        </label>
                     </div>
                     <div id="about-content" class="px-6 md:px-10 py-12 flex flex-col md:flex-row gap-8 items-center md:items-start transition-opacity duration-300">
                         <div class="flex flex-col items-center gap-2 flex-shrink-0">
@@ -191,7 +218,7 @@
                         </div>
                         <div class="flex-1 text-center md:text-left">
                             <h3 class="font-space font-bold text-xl theme-text-primary mb-4">À propos de moi</h3>
-                            <div id="Texte_about" contenteditable="true" class="editable-field theme-text-secondary leading-relaxed text-sm p-2 -ml-2" data-placeholder="Présentez-vous en quelques lignes...">Présentez-vous en quelques lignes...</div>
+                            <div id="Texte_about" contenteditable="false" class="editable-field theme-text-secondary leading-relaxed text-sm p-2 -ml-2" data-placeholder="Présentez-vous en quelques lignes...">Présentez-vous en quelques lignes...</div>
                             <div class="mt-6 flex gap-3 justify-center md:justify-start">
                                 <a href="#" class="text-gray-400 hover:text-gray-600 transition-colors"><iconify-icon icon="lucide:instagram" width="20"></iconify-icon></a>
                                 <a href="#" class="text-gray-400 hover:text-gray-600 transition-colors"><iconify-icon icon="lucide:facebook" width="20"></iconify-icon></a>
@@ -206,10 +233,10 @@
                 <section class="relative border-b theme-border theme-bg-section" id="section-reviews">
                     <div class="edit-only absolute top-4 right-6 z-10 flex items-center gap-2 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
                         <span class="text-[10px] uppercase font-bold text-gray-400">Avis</span>
-                        <div class="relative inline-block w-8 h-4 align-middle select-none">
+                        <label for="Section_avis_visible" class="relative inline-block w-8 h-4 align-middle select-none cursor-pointer">
                             <input type="checkbox" id="Section_avis_visible" checked onclick="toggleSection('reviews-content', this)" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer transition-all duration-300"/>
-                            <label class="toggle-label block overflow-hidden h-4 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></label>
-                        </div>
+                            <span class="toggle-label block overflow-hidden h-4 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></span>
+                        </label>
                     </div>
                     <div id="reviews-content" class="px-6 md:px-10 py-12 transition-opacity duration-300">
                         <h3 class="font-space font-bold text-xl text-center theme-text-primary mb-8">Ce qu'ils disent</h3>
@@ -232,10 +259,10 @@
                 <section class="relative pb-12" id="section-gallery">
                     <div class="edit-only absolute top-4 right-6 z-10 flex items-center gap-2 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
                         <span class="text-[10px] uppercase font-bold text-gray-400">Galerie</span>
-                        <div class="relative inline-block w-8 h-4 align-middle select-none">
+                        <label for="Section_galerie_visible" class="relative inline-block w-8 h-4 align-middle select-none cursor-pointer">
                             <input type="checkbox" id="Section_galerie_visible" checked onclick="toggleSection('gallery-content', this)" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer transition-all duration-300"/>
-                            <label class="toggle-label block overflow-hidden h-4 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></label>
-                        </div>
+                            <span class="toggle-label block overflow-hidden h-4 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300"></span>
+                        </label>
                     </div>
                     <div id="gallery-content" class="px-6 md:px-10 py-12 transition-opacity duration-300">
                         <h3 class="font-space font-bold text-xl theme-text-primary mb-6">Galerie Photos</h3>
@@ -265,17 +292,28 @@
     <script>
         // --- Conventions ---
         // 1. Page dans un élément HTML Bubble (pas d'iframe).
-        // 2. Trois variables : __WEBSITE_DETAILS__ (JSON), __PRESTATIONS__ (JSON), __AVIS__ (JSON).
+        // 2. Cinq variables : __WEBSITE_DETAILS__ (JSON), __PRESTATIONS__ (JSON), __AVIS__ (JSON), __EDITABLE_VIEW__ (true/false), __EDIT_MODE__ (true/false).
         // 3. Chaque input a un id = nom du champ Bubble (Titre, Description, Logo, Photo_about, Banniere, Texte_about, Theme, Section_about_visible, Section_avis_visible, Section_galerie_visible, Galerie).
         // 4. Les valeurs par défaut sont celles injectées par Bubble.
+        // 5. IS_EDITABLE_VIEW contrôle la vue : true = vue éditable (côté esthéticienne), false = vue client (header + prestations + sections dans sections_displayed uniquement).
+        // 6. IS_EDIT_MODE contrôle le mode dans la vue éditable : true = mode edit (champs éditables), false = mode view-only (champs non éditables, mais toutes sections visibles).
 
+        var UPLOAD_URL = 'https://balma-image-upload.clementine-grosset.workers.dev'; // ← Remplacer par ton URL Worker
         var DEFAULT_BANNER = 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=2940&auto=format&fit=crop';
         var PLACEHOLDER_TITRE = 'Nom du salon ou Prénom Nom';
         var PLACEHOLDER_DESC = 'Courte description de votre activité';
         var PLACEHOLDER_ABOUT = 'Présentez-vous en quelques lignes...';
 
+        // Sections avec toggle de visibilité (about, avis, galerie)
+        // Note: Les sections "header" et "prestations" sont toujours visibles et n'ont pas de toggle
         var SECTION_IDS = { about: 'section-about', avis: 'section-reviews', galerie: 'section-gallery' };
         var currentTheme = 'balma';
+        
+        // Variables pour contrôler le mode d'affichage
+        // IS_EDITABLE_VIEW : true = vue éditable (côté esthéticienne), false = vue client
+        // IS_EDIT_MODE : true = mode edit (champs éditables), false = mode view-only (dans la vue éditable uniquement)
+        var IS_EDITABLE_VIEW = true;
+        var IS_EDIT_MODE = true;
 
         function getEditorRoot() {
             try {
@@ -291,8 +329,7 @@
 
         function setEditableMode(editable) {
             var isEditable = editable === true || editable === 'true' || editable === '1';
-            document.body.classList.toggle('view-only', !isEditable);
-            var editables = EDITOR_ROOT.querySelectorAll ? EDITOR_ROOT.querySelectorAll('.editable-field') : document.querySelectorAll('.editable-field');
+            var editables = document.querySelectorAll('.editable-field');
             for (var i = 0; i < editables.length; i++) editables[i].setAttribute('contenteditable', isEditable ? 'true' : 'false');
         }
 
@@ -302,10 +339,58 @@
             var root = EDITOR_ROOT;
             var sep = (root.querySelector && root.querySelector('.section-separator[data-before="' + sectionId + '"]')) || document.querySelector('.section-separator[data-before="' + sectionId + '"]');
             var section = (root.getElementById && root.getElementById(sectionId)) || document.getElementById(sectionId);
-            var check = section ? section.querySelector('input[type="checkbox"]') : null;
-            if (section) section.style.display = visible ? '' : 'none';
-            if (sep) sep.style.display = visible ? '' : 'none';
-            if (check) { check.checked = visible; toggleSection(contentId, check); }
+            var content = (root.getElementById && root.getElementById(contentId)) || document.getElementById(contentId);
+            
+            if (IS_EDITABLE_VIEW) {
+                // Vue éditable (côté esthéticienne) : toutes les sections restent toujours visibles
+                // En mode edit=true : le toggle contrôle l'opacité/visibilité du contenu
+                // En mode edit=false : les sections non visibles sont grisées (mais restent visibles)
+                if (section) {
+                    section.style.display = '';
+                }
+                if (sep) {
+                    sep.style.display = '';
+                }
+                
+                // Appliquer le grisage selon la visibilité (même si les toggles sont masqués en mode edit=false)
+                if (content) {
+                    if (visible) {
+                        content.classList.remove('opacity-25', 'pointer-events-none', 'grayscale');
+                    } else {
+                        content.classList.add('opacity-25', 'pointer-events-none', 'grayscale');
+                    }
+                }
+                
+                // Trouver la checkbox directement par son ID pour être plus robuste
+                var checkId = 'Section_' + sectionKey + '_visible';
+                var check = (root.getElementById && root.getElementById(checkId)) || document.getElementById(checkId);
+                if (check) {
+                    check.checked = visible;
+                    // toggleSection sera appelé seulement si les toggles sont visibles, mais on a déjà appliqué le grisage ci-dessus
+                    if (IS_EDIT_MODE) {
+                        toggleSection(contentId, check);
+                    }
+                }
+            } else {
+                // Vue client : masquer COMPLÈTEMENT les sections non autorisées (la vue client prend le dessus sur edit-mode)
+                // Si visible = true, réafficher la section et son séparateur
+                // Si visible = false, masquer complètement (display: none)
+                if (section) {
+                    section.style.display = visible ? '' : 'none';
+                }
+                if (sep) {
+                    sep.style.display = visible ? '' : 'none';
+                }
+                // En vue client, masquer aussi le contenu des sections non autorisées
+                if (content) {
+                    if (visible) {
+                        content.style.display = '';
+                        content.classList.remove('opacity-25', 'pointer-events-none', 'grayscale');
+                    } else {
+                        content.style.display = 'none';
+                    }
+                }
+            }
         }
 
         function applyWebsiteDetails(details) {
@@ -364,29 +449,44 @@
             setTheme(theme);
 
             var sections = d.Sections_display;
-            if (Array.isArray(sections)) {
-                setSectionVisibility('about', sections.indexOf('about') !== -1);
-                setSectionVisibility('avis', sections.indexOf('avis') !== -1);
-                setSectionVisibility('galerie', sections.indexOf('galerie') !== -1);
-            } else if (typeof sections === 'string') {
-                // Split par virgule et nettoyer chaque section
-                var arr = sections.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
-                // Normaliser les noms de sections et ignorer les sections obligatoires
-                var norm = arr.map(function(s) {
-                    var lower = s.toLowerCase();
-                    // Ignorer les sections obligatoires (Header, Prestations)
-                    if (/header|header\s*\(obligatoire\)/i.test(lower)) return null;
-                    if (/prestations|prestations\s*\(obligatoire\)/i.test(lower)) return null;
-                    // Normaliser les noms de sections optionnelles
-                    if (/à\s*propos|a\s*propos|propos|about/i.test(lower)) return 'about';
-                    if (/gallerie|galerie|gallery/i.test(lower)) return 'galerie';
-                    if (/avis|reviews|témoignages/i.test(lower)) return 'avis';
-                    return lower;
-                }).filter(Boolean);
-                setSectionVisibility('about', norm.indexOf('about') !== -1);
-                setSectionVisibility('avis', norm.indexOf('avis') !== -1);
-                setSectionVisibility('galerie', norm.indexOf('galerie') !== -1);
+            // Les sections "header" et "prestations" sont toujours visibles (pas de toggle)
+            // En vue éditable : les autres sections (about, avis, galerie) restent toujours visibles, le toggle contrôle seulement l'opacité du contenu
+            // En vue client : les sections non présentes dans sections_display sont complètement masquées
+            
+            var aboutVisible = false;
+            var avisVisible = false;
+            var galerieVisible = false;
+            
+            if (sections != null && sections !== undefined && sections !== '') {
+                if (Array.isArray(sections)) {
+                    aboutVisible = sections.indexOf('about') !== -1;
+                    avisVisible = sections.indexOf('avis') !== -1;
+                    galerieVisible = sections.indexOf('galerie') !== -1;
+                } else if (typeof sections === 'string' && sections.trim() !== '') {
+                    // Split par virgule et nettoyer chaque section
+                    var arr = sections.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+                    // Normaliser les noms de sections et ignorer les sections obligatoires
+                    var norm = arr.map(function(s) {
+                        var lower = s.toLowerCase();
+                        // Ignorer les sections obligatoires (Header, Prestations)
+                        if (/header|header\s*\(obligatoire\)/i.test(lower)) return null;
+                        if (/prestations|prestations\s*\(obligatoire\)/i.test(lower)) return null;
+                        // Normaliser les noms de sections optionnelles
+                        if (/à\s*propos|a\s*propos|propos|about/i.test(lower)) return 'about';
+                        if (/gallerie|galerie|gallery/i.test(lower)) return 'galerie';
+                        if (/avis|reviews|témoignages/i.test(lower)) return 'avis';
+                        return lower;
+                    }).filter(Boolean);
+                    aboutVisible = norm.indexOf('about') !== -1;
+                    avisVisible = norm.indexOf('avis') !== -1;
+                    galerieVisible = norm.indexOf('galerie') !== -1;
+                }
             }
+            
+            // Appliquer les visibilités
+            setSectionVisibility('about', aboutVisible);
+            setSectionVisibility('avis', avisVisible);
+            setSectionVisibility('galerie', galerieVisible);
 
             var galerieUrls = d.Galerie;
             var galerieArray = [];
@@ -494,41 +594,7 @@
                     if (validUrls.length > 0) {
                         validUrls.forEach(function(url) {
                             if (!url) return;
-                            var div = document.createElement('div');
-                            div.className = 'masonry-item relative group rounded-lg overflow-hidden cursor-zoom-in';
-                            div.onclick = function() { openLightbox(this); };
-                            // Créer l'élément img séparément pour mieux gérer les URLs base64 longues
-                            var img = document.createElement('img');
-                            img.src = url;
-                            img.className = 'w-full h-auto object-cover transform transition-transform duration-500 group-hover:scale-110';
-                            img.alt = 'Galerie';
-                            img.onerror = function() {
-                                // Supprimer l'élément parent si l'image ne charge pas
-                                console.warn('Erreur de chargement d\'image dans la galerie:', url.substring(0, 100));
-                                if (this.parentElement) {
-                                    this.parentElement.remove();
-                                }
-                            };
-                            img.onload = function() {
-                                // Vérifier que l'image s'est bien chargée (pour déboguer)
-                                if (this.naturalWidth === 0 || this.naturalHeight === 0) {
-                                    console.warn('Image chargée mais dimensions invalides:', url.substring(0, 100));
-                                }
-                            };
-                            div.appendChild(img);
-                            // Ajouter l'overlay et le bouton de suppression
-                            var overlay = document.createElement('div');
-                            overlay.className = 'absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors';
-                            div.appendChild(overlay);
-                            var removeBtn = document.createElement('button');
-                            removeBtn.type = 'button';
-                            removeBtn.className = 'edit-only absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity';
-                            removeBtn.onclick = function(e) {
-                                e.stopPropagation();
-                                if (div.parentElement) div.parentElement.removeChild(div);
-                            };
-                            removeBtn.innerHTML = '<iconify-icon icon="lucide:x" width="12"></iconify-icon>';
-                            div.appendChild(removeBtn);
+                            var div = createGalleryItem(url);
                             grid.appendChild(div);
                         });
                     }
@@ -548,6 +614,7 @@
                 var isLocal = (p.is_local || p.Is_local) === true || (p.is_local || p.Is_local) === 'true';
                 var lieu = isLocal ? (p.adresse || p.Adresse || '') : 'À domicile';
                 return {
+                    id: p.id || p.Id || p._id || '',
                     nom: p.nom || p.Nom || '',
                     prix: p.prix != null ? String(p.prix) : (p.Prix != null ? String(p.Prix) : ''),
                     duree: dureeStr,
@@ -560,6 +627,35 @@
         }
 
         function escapeHtml(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
+        function getCategoryIcon(category) {
+            if (!category) return '<iconify-icon icon="lucide:sparkles" width="16"></iconify-icon>';
+            var cat = category.toLowerCase();
+            // Mapping des catégories vers des icônes
+            if (/maquillage|makeup|make-up/i.test(cat)) {
+                return '<iconify-icon icon="lucide:palette" width="16"></iconify-icon>';
+            }
+            if (/coiffure|hair|cheveux/i.test(cat)) {
+                return '<iconify-icon icon="lucide:scissors" width="16"></iconify-icon>';
+            }
+            if (/massage|massages/i.test(cat)) {
+                return '<iconify-icon icon="lucide:hand" width="16"></iconify-icon>';
+            }
+            if (/soin|soins|beauté|beaute/i.test(cat)) {
+                return '<iconify-icon icon="lucide:sparkles" width="16"></iconify-icon>';
+            }
+            if (/épilation|epilation/i.test(cat)) {
+                return '<iconify-icon icon="lucide:zap" width="16"></iconify-icon>';
+            }
+            if (/manucure|nail|ongles/i.test(cat)) {
+                return '<iconify-icon icon="lucide:sparkles" width="16"></iconify-icon>';
+            }
+            if (/esthétique|esthetique/i.test(cat)) {
+                return '<iconify-icon icon="lucide:heart" width="16"></iconify-icon>';
+            }
+            // Icône par défaut
+            return '<iconify-icon icon="lucide:sparkles" width="16"></iconify-icon>';
+        }
 
         function renderPrestations(prestations) {
             var root = EDITOR_ROOT;
@@ -578,21 +674,137 @@
                 if (!byCat[cat]) byCat[cat] = [];
                 byCat[cat].push(p);
             });
-            Object.keys(byCat).forEach(function(cat) {
-                var block = document.createElement('div');
-                block.className = 'mb-8';
-                block.innerHTML = '<h4 class="font-medium theme-text-primary mb-4 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> ' + escapeHtml(cat) + '</h4><div class="space-y-3"></div>';
-                var list = block.querySelector('.space-y-3');
-                byCat[cat].forEach(function(p) {
-                    var card = document.createElement('div');
-                    card.className = 'group flex items-center justify-between p-4 rounded-xl border theme-border theme-bg-section hover:border-gray-300 transition-all cursor-default';
-                    var lieuHtml = (p.lieu !== undefined && p.lieu !== '') ? '<span class="flex items-center gap-1"><iconify-icon icon="lucide:map-pin" width="12"></iconify-icon> ' + escapeHtml(p.lieu) + '</span>' : '';
-                    var metaHtml = '<div class="flex items-center gap-4 text-xs theme-text-secondary flex-wrap"><span class="flex items-center gap-1"><iconify-icon icon="lucide:clock" width="12"></iconify-icon> ' + escapeHtml(p.duree) + '</span>' + (p.personne ? '<span class="flex items-center gap-1"><iconify-icon icon="lucide:user" width="12"></iconify-icon> ' + escapeHtml(p.personne) + '</span>' : '') + lieuHtml + '</div>';
-                    card.innerHTML = '<div class="flex-1"><div class="flex items-baseline gap-3 mb-1"><span class="font-medium theme-text-primary">' + escapeHtml(p.nom) + '</span><span class="text-sm font-semibold theme-text-secondary">' + escapeHtml(p.prix) + (p.prix && !/€|euro/i.test(p.prix) ? ' €' : '') + '</span></div>' + metaHtml + '</div><button class="ml-4 px-4 py-2 theme-btn text-xs font-medium rounded-lg shadow-sm flex-shrink-0">Réserver</button>';
-                    list.appendChild(card);
-                });
-                container.appendChild(block);
+            // Compter le total de prestations pour déterminer si on doit afficher le bouton
+            var totalPrestations = prestations.length;
+            var prestationIndex = 0; // Compteur global pour toutes les prestations
+            var lastVisibleList = null; // Référence à la dernière liste visible pour ajouter les prestations cachées
+            
+            Object.keys(byCat).forEach(function(cat, catIndex) {
+                var prestationsCat = byCat[cat];
+                var hasVisiblePrestation = (prestationIndex === 0); // La première prestation globale est visible
+                
+                // Ne créer le bloc de catégorie que si elle contient la prestation visible
+                if (hasVisiblePrestation) {
+                    var block = document.createElement('div');
+                    block.className = 'mb-8';
+                    var icon = getCategoryIcon(cat);
+                    
+                    block.innerHTML = '<h4 class="font-semibold text-gray-600 mb-5 flex items-center gap-2 text-sm uppercase tracking-wide">' + icon + ' ' + escapeHtml(cat) + '</h4><div class="space-y-3"></div>';
+                    var list = block.querySelector('.space-y-3');
+                    lastVisibleList = list; // Garder la référence pour les prestations cachées suivantes
+                    
+                    prestationsCat.forEach(function(p, pIndex) {
+                        var card = createPrestationCard(p);
+                        // Afficher seulement la première prestation (prestationIndex === 0)
+                        // Toutes les autres sont cachées
+                        if (prestationIndex === 0) {
+                            // Première prestation visible
+                        } else {
+                            card.classList.add('prestations-hidden');
+                        }
+                        card.setAttribute('data-prestation-index', prestationIndex);
+                        list.appendChild(card);
+                        prestationIndex++;
+                    });
+                    
+                    container.appendChild(block);
+                } else {
+                    // Toutes les prestations de cette catégorie sont cachées
+                    // Les ajouter dans la dernière liste visible (sans titre de catégorie)
+                    if (lastVisibleList) {
+                        prestationsCat.forEach(function(p, pIndex) {
+                            var card = createPrestationCard(p);
+                            card.classList.add('prestations-hidden');
+                            card.setAttribute('data-prestation-index', prestationIndex);
+                            lastVisibleList.appendChild(card);
+                            prestationIndex++;
+                        });
+                    }
+                }
             });
+            
+            // Ajouter un seul bouton "Voir toutes les prestations" à la fin si plus d'une prestation
+            if (totalPrestations > 1) {
+                var buttonContainer = document.createElement('div');
+                buttonContainer.className = 'mt-6 flex justify-center';
+                var button = document.createElement('button');
+                button.className = 'text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-2 transition-colors py-2';
+                button.innerHTML = '<span id="button-text-all">Voir toutes les prestations</span><iconify-icon icon="lucide:chevron-down" width="16" class="transition-transform duration-300" id="chevron-all"></iconify-icon>';
+                button.onclick = function() {
+                    toggleAllPrestations();
+                };
+                buttonContainer.appendChild(button);
+                container.appendChild(buttonContainer);
+            }
+            
+            function createPrestationCard(p) {
+                var card = document.createElement('div');
+                card.className = 'group flex items-center justify-between p-4 rounded-xl border theme-border theme-bg-section hover:border-gray-300 transition-all cursor-default';
+                var lieuHtml = (p.lieu !== undefined && p.lieu !== '') ? '<span class="flex items-center gap-1"><iconify-icon icon="lucide:map-pin" width="12"></iconify-icon> ' + escapeHtml(p.lieu) + '</span>' : '';
+                var metaHtml = '<div class="flex items-center gap-4 text-xs theme-text-secondary flex-wrap"><span class="flex items-center gap-1"><iconify-icon icon="lucide:clock" width="12"></iconify-icon> ' + escapeHtml(p.duree) + '</span>' + (p.personne ? '<span class="flex items-center gap-1"><iconify-icon icon="lucide:user" width="12"></iconify-icon> ' + escapeHtml(p.personne) + '</span>' : '') + lieuHtml + '</div>';
+                var btnHtml = '<button class="ml-4 px-4 py-2 theme-btn text-xs font-medium rounded-lg shadow-sm flex-shrink-0" data-prestation-id="' + escapeHtml(p.id) + '" onclick="handleReserver(this)">Réserver</button>';
+                card.innerHTML = '<div class="flex-1"><div class="flex items-baseline gap-3 mb-1"><span class="font-medium theme-text-primary">' + escapeHtml(p.nom) + '</span><span class="text-sm font-semibold theme-text-secondary">' + escapeHtml(p.prix) + (p.prix && !/€|euro/i.test(p.prix) ? ' €' : '') + '</span></div>' + metaHtml + '</div>' + btnHtml;
+                return card;
+            }
+        }
+        
+        function toggleAllPrestations() {
+            var allCards = document.querySelectorAll('[data-prestation-index]');
+            var chevron = document.getElementById('chevron-all');
+            var buttonText = document.getElementById('button-text-all');
+            
+            if (!chevron || allCards.length === 0) return;
+            
+            // Vérifier si on est en mode étendu (la deuxième prestation n'a pas la classe prestations-hidden)
+            var secondCard = allCards[1];
+            var isExpanded = !secondCard || !secondCard.classList.contains('prestations-hidden');
+            
+            if (!isExpanded) {
+                // Dérouler toutes les prestations cachées
+                allCards.forEach(function(card) {
+                    var index = parseInt(card.getAttribute('data-prestation-index'), 10);
+                    if (index > 0) {
+                        card.classList.remove('prestations-hidden');
+                        card.classList.add('prestations-visible');
+                    }
+                });
+                if (chevron) chevron.style.transform = 'rotate(180deg)';
+                if (buttonText) buttonText.textContent = 'Voir moins';
+            } else {
+                // Replier toutes les prestations sauf la première
+                allCards.forEach(function(card) {
+                    var index = parseInt(card.getAttribute('data-prestation-index'), 10);
+                    if (index > 0) {
+                        card.classList.remove('prestations-visible');
+                        card.classList.add('prestations-hidden');
+                    }
+                });
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+                if (buttonText) buttonText.textContent = 'Voir toutes les prestations';
+            }
+        }
+        
+        function togglePrestations(catIndex) {
+            var hiddenContainer = document.getElementById('prestations-hidden-' + catIndex);
+            var chevron = document.getElementById('chevron-' + catIndex);
+            var buttonText = document.getElementById('button-text-' + catIndex);
+            if (!hiddenContainer || !chevron) return;
+            
+            var isHidden = hiddenContainer.classList.contains('prestations-hidden');
+            
+            if (isHidden) {
+                // Dérouler
+                hiddenContainer.classList.remove('prestations-hidden');
+                hiddenContainer.classList.add('prestations-visible');
+                chevron.style.transform = 'rotate(180deg)';
+                if (buttonText) buttonText.textContent = 'Voir moins';
+            } else {
+                // Replier
+                hiddenContainer.classList.remove('prestations-visible');
+                hiddenContainer.classList.add('prestations-hidden');
+                chevron.style.transform = 'rotate(0deg)';
+                if (buttonText) buttonText.textContent = 'Voir toutes les prestations';
+            }
         }
 
         function applyAvis(list) {
@@ -602,11 +814,22 @@
             if (!dynamicEl) return;
             dynamicEl.innerHTML = '';
             var hasAvis = Array.isArray(list) && list.length > 0;
-            if (emptyEl) emptyEl.classList.toggle('hidden', hasAvis);
+            
+            // Toujours afficher l'état vide si pas d'avis, sinon afficher les cartes
+            if (emptyEl) {
+                if (hasAvis) {
+                    emptyEl.classList.add('hidden');
+                } else {
+                    emptyEl.classList.remove('hidden');
+                }
+            }
+            
             if (!hasAvis) {
                 dynamicEl.classList.add('hidden');
+                // La section reste visible avec le toggle, on ne fait que masquer les cartes
                 return;
             }
+            
             dynamicEl.classList.remove('hidden');
             list.forEach(function(av) {
                 var nom = av.nom != null ? av.nom : (av.Nom != null ? av.Nom : '');
@@ -623,7 +846,39 @@
         }
 
         function initFromVariables() {
-            setEditableMode(true);
+            // Lire directement les valeurs depuis les divs (pas de dépendance à l'IIFE)
+            var evEl = document.getElementById('editable-view-raw');
+            var emEl = document.getElementById('edit-mode-raw');
+            var evVal = evEl ? evEl.textContent.trim() : '';
+            var emVal = emEl ? emEl.textContent.trim() : '';
+
+            IS_EDITABLE_VIEW = (evVal === 'true' || evVal === '1');
+            IS_EDIT_MODE = (emVal === 'true' || emVal === '1');
+
+            // Fallback sur window si les divs n'existent pas
+            if (!evEl && typeof window.IS_EDITABLE_VIEW !== 'undefined') IS_EDITABLE_VIEW = window.IS_EDITABLE_VIEW;
+            if (!emEl && typeof window.IS_EDIT_MODE !== 'undefined') IS_EDIT_MODE = window.IS_EDIT_MODE;
+
+            console.log('[balma] editable-view=' + evVal + ' → IS_EDITABLE_VIEW=' + IS_EDITABLE_VIEW);
+            console.log('[balma] edit-mode=' + emVal + ' → IS_EDIT_MODE=' + IS_EDIT_MODE);
+            console.log('[balma] edit-active=' + (IS_EDITABLE_VIEW && IS_EDIT_MODE));
+
+            // Classes sur body
+            document.body.classList.toggle('client-view', !IS_EDITABLE_VIEW);
+            document.body.classList.toggle('edit-active', IS_EDITABLE_VIEW && IS_EDIT_MODE);
+
+            // En vue client, masquer les sections optionnelles
+            // (elles seront réaffichées par applyWebsiteDetails si dans sections_displayed)
+            if (!IS_EDITABLE_VIEW) {
+                var allSections = ['section-about', 'section-reviews', 'section-gallery'];
+                for (var i = 0; i < allSections.length; i++) {
+                    var sec = document.getElementById(allSections[i]);
+                    if (sec) sec.style.display = 'none';
+                }
+            }
+
+            // Le mode édition (contenteditable) est activé uniquement en vue esthéticienne + edit=true
+            setEditableMode(IS_EDITABLE_VIEW && IS_EDIT_MODE);
             applyWebsiteDetails(window.WEBSITE_DETAILS || {});
             applyPrestations(window.PRESTATIONS_LIST || []);
             applyAvis(window.AVIS_LIST || []);
@@ -663,61 +918,36 @@
         function handleImageUpload(event, elId, isBg, placeholderId) {
             var file = event.target.files[0];
             if (!file) return;
-            
-            // Définir les paramètres de compression selon le type d'image
-            var maxWidth, maxHeight, quality;
-            if (elId === 'Logo') {
-                maxWidth = 400;
-                maxHeight = 400;
-                quality = 0.9; // Logo : qualité plus élevée, taille plus petite
-            } else if (elId === 'Banniere') {
-                maxWidth = 2000;
-                maxHeight = 1200;
-                quality = 0.85; // Bannière : taille moyenne, bonne qualité
-            } else if (elId === 'Photo_about') {
-                maxWidth = 800;
-                maxHeight = 1000;
-                quality = 0.85; // Photo about : taille moyenne
+            var el = document.getElementById(elId);
+            if (!el) return;
+
+            // Afficher un état de chargement
+            if (isBg) {
+                el.style.opacity = '0.5';
             } else {
-                maxWidth = 1200;
-                maxHeight = 1200;
-                quality = 0.8; // Par défaut
-            }
-            
-            // Compresser l'image et la stocker en base64 dans le DOM (sera récupérée via getWebsiteData())
-            compressImage(file, maxWidth, maxHeight, quality).then(function(compressedDataUrl) {
-                var el = document.getElementById(elId);
-                if (!el) return;
-                if (isBg) {
-                    el.style.backgroundImage = "url('" + compressedDataUrl + "')";
-                } else {
-                    el.src = compressedDataUrl;
-                    el.classList.remove('hidden');
-                    if (placeholderId) {
-                        var ph = document.getElementById(placeholderId);
-                        if (ph) ph.classList.add('hidden');
-                    }
-                    if (elId === 'Logo') {
-                        var btn = document.getElementById('Logo_remove');
-                        if (btn) btn.classList.remove('hidden');
-                    } else if (elId === 'Photo_about') {
-                        var btn = document.getElementById('Photo_about_remove');
-                        if (btn) btn.classList.remove('hidden');
-                    }
+                el.style.opacity = '0.5';
+                el.classList.remove('hidden');
+                if (placeholderId) {
+                    var ph = document.getElementById(placeholderId);
+                    if (ph) ph.classList.add('hidden');
                 }
-            }).catch(function(error) {
-                console.error('Erreur lors de la compression de l\'image:', error);
-                // En cas d'erreur, utiliser l'image originale en base64 (fallback)
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    var src = e.target.result;
-                    var el = document.getElementById(elId);
-                    if (!el) return;
-                    if (isBg) {
-                        el.style.backgroundImage = "url('" + src + "')";
-                    } else {
-                        el.src = src;
-                        el.classList.remove('hidden');
+            }
+
+            // Upload vers Cloudflare R2
+            var formData = new FormData();
+            formData.append('image', file);
+
+            fetch(UPLOAD_URL, { method: 'POST', body: formData })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.url) {
+                        if (isBg) {
+                            el.style.backgroundImage = "url('" + data.url + "')";
+                        } else {
+                            el.src = data.url;
+                            el.classList.remove('hidden');
+                        }
+                        el.style.opacity = '1';
                         if (placeholderId) {
                             var ph = document.getElementById(placeholderId);
                             if (ph) ph.classList.add('hidden');
@@ -729,10 +959,15 @@
                             var btn = document.getElementById('Photo_about_remove');
                             if (btn) btn.classList.remove('hidden');
                         }
+                    } else {
+                        console.error('Upload error:', data.error);
+                        el.style.opacity = '1';
                     }
-                };
-                reader.readAsDataURL(file);
-            });
+                })
+                .catch(function(err) {
+                    console.error('Upload failed:', err);
+                    el.style.opacity = '1';
+                });
         }
 
         function removeLogo() {
@@ -800,78 +1035,64 @@
             });
         }
 
+        function createGalleryItem(imageSrc) {
+            var div = document.createElement('div');
+            div.className = 'masonry-item relative group rounded-lg overflow-hidden cursor-zoom-in';
+            div.onclick = function() { openLightbox(this); };
+            var img = document.createElement('img');
+            img.src = imageSrc;
+            img.className = 'w-full h-auto object-cover transform transition-transform duration-500 group-hover:scale-110';
+            img.alt = 'Galerie';
+            img.onerror = function() { if (this.parentElement) this.parentElement.remove(); };
+            div.appendChild(img);
+            var overlay = document.createElement('div');
+            overlay.className = 'absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors';
+            div.appendChild(overlay);
+            var removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'edit-only absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity';
+            removeBtn.onclick = function(e) { e.stopPropagation(); if (div.parentElement) div.parentElement.removeChild(div); };
+            removeBtn.innerHTML = '<iconify-icon icon="lucide:x" width="12"></iconify-icon>';
+            div.appendChild(removeBtn);
+            return div;
+        }
+
         function addToGallery(event) {
             var files = event.target.files;
             if (!files || files.length === 0) return;
             var grid = document.getElementById('Galerie');
             if (!grid) return;
             var firstCell = grid.querySelector('.masonry-item');
-            
+
             Array.prototype.forEach.call(files, function(file) {
-                // Fonction helper pour créer un élément de galerie
-                function createGalleryItem(imageSrc) {
-                    var div = document.createElement('div');
-                    div.className = 'masonry-item relative group rounded-lg overflow-hidden cursor-zoom-in';
-                    div.onclick = function() { openLightbox(this); };
-                    
-                    // Créer l'élément img séparément pour mieux gérer les URLs base64
-                    var img = document.createElement('img');
-                    img.src = imageSrc;
-                    img.className = 'w-full h-auto object-cover transform transition-transform duration-500 group-hover:scale-110';
-                    img.alt = 'Galerie';
-                    img.onerror = function() {
-                        // Supprimer l'élément parent si l'image ne charge pas
-                        if (this.parentElement) {
-                            this.parentElement.remove();
+                // Placeholder pendant l'upload
+                var placeholder = document.createElement('div');
+                placeholder.className = 'masonry-item rounded-lg overflow-hidden bg-gray-100';
+                placeholder.style.minHeight = '140px';
+                placeholder.innerHTML = '<div class="flex items-center justify-center h-full py-10">' +
+                    '<iconify-icon icon="lucide:loader" width="20" class="text-gray-400 animate-spin"></iconify-icon>' +
+                    '<span class="text-xs text-gray-400 ml-2">Upload...</span></div>';
+                grid.insertBefore(placeholder, firstCell ? firstCell.nextSibling : null);
+
+                // Upload vers Cloudflare R2
+                var formData = new FormData();
+                formData.append('image', file);
+
+                fetch(UPLOAD_URL, { method: 'POST', body: formData })
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (data.url) {
+                            var div = createGalleryItem(data.url);
+                            placeholder.replaceWith(div);
+                        } else {
+                            console.error('Upload error:', data.error);
+                            placeholder.remove();
                         }
-                    };
-                    img.onload = function() {
-                        // Vérifier que l'image s'est bien chargée
-                        if (this.naturalWidth === 0 || this.naturalHeight === 0) {
-                            console.warn('Image chargée mais dimensions invalides');
-                        }
-                    };
-                    div.appendChild(img);
-                    
-                    // Ajouter l'overlay et le bouton de suppression
-                    var overlay = document.createElement('div');
-                    overlay.className = 'absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors';
-                    div.appendChild(overlay);
-                    
-                    var removeBtn = document.createElement('button');
-                    removeBtn.type = 'button';
-                    removeBtn.className = 'edit-only absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity';
-                    removeBtn.onclick = function(e) {
-                        e.stopPropagation();
-                        if (div.parentElement) div.parentElement.removeChild(div);
-                    };
-                    removeBtn.innerHTML = '<iconify-icon icon="lucide:x" width="12"></iconify-icon>';
-                    div.appendChild(removeBtn);
-                    
-                    return div;
-                }
-                
-                // Compresser l'image et la stocker en base64 dans le DOM (sera récupérée via getWebsiteData())
-                // Compression très agressive pour la galerie : 800x800 max, qualité 60% pour éviter les erreurs "URI Too Long" dans Bubble
-                compressImage(file, 800, 800, 0.6).then(function(compressedDataUrl) {
-                    console.log('DEBUG addToGallery: Image compressée, longueur URL:', compressedDataUrl.length, 'preview:', compressedDataUrl.substring(0, 50) + '...');
-                    var div = createGalleryItem(compressedDataUrl);
-                    // Vérifier que l'image a bien été créée avec la bonne source
-                    var img = div.querySelector('img');
-                    if (img) {
-                        console.log('DEBUG addToGallery: Image créée dans le DOM, src length:', img.src ? img.src.length : 0, 'match:', img.src === compressedDataUrl);
-                    }
-                    grid.insertBefore(div, firstCell ? firstCell.nextSibling : null);
-                }).catch(function(error) {
-                    console.error('Erreur lors de la compression de l\'image:', error);
-                    // En cas d'erreur, utiliser l'image originale en base64 (fallback)
-                    var reader = new FileReader();
-                    reader.onload = function(e) {
-                        var div = createGalleryItem(e.target.result);
-                        grid.insertBefore(div, firstCell ? firstCell.nextSibling : null);
-                    };
-                    reader.readAsDataURL(file);
-                });
+                    })
+                    .catch(function(err) {
+                        console.error('Upload failed:', err);
+                        placeholder.remove();
+                    });
             });
             event.target.value = '';
         }
@@ -891,6 +1112,15 @@
             if (!content) return;
             if (checkbox.checked) content.classList.remove('opacity-25', 'pointer-events-none', 'grayscale');
             else content.classList.add('opacity-25', 'pointer-events-none', 'grayscale');
+        }
+
+        function handleReserver(btn) {
+            var prestationId = btn.getAttribute('data-prestation-id');
+            if (prestationId) {
+                var url = new URL(window.location.href);
+                url.searchParams.set('prestation', prestationId);
+                window.location.href = url.toString();
+            }
         }
 
         function getWebsiteData() {
@@ -981,12 +1211,52 @@
             } catch (e) {}
             try {
                 if (prestationsJson != null && prestationsJson !== '') {
-                    window.PRESTATIONS_LIST = typeof prestationsJson === 'string' ? JSON.parse(prestationsJson) : prestationsJson;
+                    var raw = typeof prestationsJson === 'string' ? prestationsJson : JSON.stringify(prestationsJson);
+                    // Si ça commence par [, c'est un tableau JSON
+                    if (raw.trim().indexOf('[') === 0) {
+                        window.PRESTATIONS_LIST = JSON.parse(raw);
+                    } else if (raw.indexOf(';;') !== -1) {
+                        // Format séparé par ;;
+                        var parts = raw.split(';;');
+                        var result = [];
+                        for (var i = 0; i < parts.length; i++) {
+                            var part = parts[i].trim();
+                            if (!part) continue;
+                            try {
+                                result.push(JSON.parse(part));
+                            } catch (e) {}
+                        }
+                        window.PRESTATIONS_LIST = result;
+                    } else {
+                        // Un seul objet ou tableau
+                        var parsed = JSON.parse(raw);
+                        window.PRESTATIONS_LIST = Array.isArray(parsed) ? parsed : [parsed];
+                    }
                 }
             } catch (e) {}
             try {
                 if (avisJson != null && avisJson !== '') {
-                    window.AVIS_LIST = typeof avisJson === 'string' ? JSON.parse(avisJson) : avisJson;
+                    var raw = typeof avisJson === 'string' ? avisJson : JSON.stringify(avisJson);
+                    // Si ça commence par [, c'est un tableau JSON
+                    if (raw.trim().indexOf('[') === 0) {
+                        window.AVIS_LIST = JSON.parse(raw);
+                    } else if (raw.indexOf(';;') !== -1) {
+                        // Format séparé par ;;
+                        var parts = raw.split(';;');
+                        var result = [];
+                        for (var i = 0; i < parts.length; i++) {
+                            var part = parts[i].trim();
+                            if (!part) continue;
+                            try {
+                                result.push(JSON.parse(part));
+                            } catch (e) {}
+                        }
+                        window.AVIS_LIST = result;
+                    } else {
+                        // Un seul objet ou tableau
+                        var parsed = JSON.parse(raw);
+                        window.AVIS_LIST = Array.isArray(parsed) ? parsed : [parsed];
+                    }
                 }
             } catch (e) {}
             initFromVariables();

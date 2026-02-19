@@ -1,0 +1,1706 @@
+<!--
+  CALENDRIER BALMA - À coller dans un élément HTML Bubble
+
+  Version avec données vides - prêt pour injection Bubble
+-->
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  .balma-calendar {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: transparent;
+    width: 100%;
+    height: 100vh; /* Full viewport height */
+    display: flex;
+    flex-direction: column;
+    color: #18181b;
+    position: relative;
+  }
+
+  /* Container for views to allow scrolling */
+  #calendarContent {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .cal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .cal-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cal-nav-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #e4e4e7;
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  .cal-nav-btn:hover {
+    background: #f4f4f5;
+  }
+
+  .cal-nav-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: #71717a;
+  }
+
+  .cal-title {
+    font-size: 16px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    min-width: 160px;
+    text-align: center;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  .cal-today-btn {
+    padding: 6px 14px;
+    border: 1px solid #e4e4e7;
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #18181b;
+    transition: all 0.15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  .cal-today-btn:hover {
+    background: #f4f4f5;
+  }
+
+  .cal-views {
+    display: flex;
+    gap: 4px;
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    padding: 4px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  .cal-view-btn {
+    padding: 6px 14px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #71717a;
+    transition: all 0.15s;
+  }
+
+  .cal-view-btn:hover {
+    color: #18181b;
+  }
+
+  .cal-view-btn.active {
+    background: #18181b;
+    color: #fff;
+  }
+
+  /* Filtre */
+  .cal-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cal-filter-label {
+    font-size: 14px;
+    color: #71717a;
+  }
+
+  .cal-filter-select {
+    padding: 8px 12px;
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+    cursor: pointer;
+    min-width: 180px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  .cal-filter-select:focus {
+    outline: none;
+    border-color: #a1a1aa;
+  }
+
+  .cal-search-input {
+    padding: 8px 12px 8px 32px;
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+    min-width: 180px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  .cal-search-input:focus {
+    outline: none;
+    border-color: #a1a1aa;
+  }
+
+  .cal-search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .cal-search-icon {
+    position: absolute;
+    left: 10px;
+    width: 14px;
+    height: 14px;
+    stroke: #a1a1aa;
+    pointer-events: none;
+  }
+
+  /* Grille calendrier */
+  .cal-grid {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    flex: 1; /* Prend toute la hauteur disponible */
+    min-height: 0;
+  }
+
+  .cal-grid-header-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-bottom: 1px solid #e4e4e7;
+    flex-shrink: 0; /* Ne rétrécit pas */
+  }
+
+  .cal-grid-body-rows {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* Remplit l'espace restant */
+    min-height: 0;
+  }
+
+  .cal-week-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    flex: 1; /* Chaque semaine prend une part égale de la hauteur */
+    border-bottom: 1px solid #e4e4e7;
+    min-height: 0;
+  }
+
+  .cal-week-row:last-child {
+    border-bottom: none;
+  }
+
+  .cal-day-header {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: #71717a;
+    background: #fff;
+  }
+
+  .cal-day {
+    /* min-height supprimé pour laisser flex gérer la hauteur */
+    padding: 8px;
+    border-right: 1px solid #e4e4e7;
+    /* border-bottom géré par la row */
+    background: #fff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Pour que le contenu ne dépasse pas */
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+
+  .cal-day:hover {
+    background: #f4f4f5;
+  }
+
+  .cal-day:nth-child(7n) {
+    border-right: none;
+  }
+
+  .cal-day.other-month {
+    background: #fff;
+  }
+
+  .cal-day.other-month .cal-day-number {
+    color: #d4d4d8;
+  }
+
+  .cal-day.today .cal-day-number {
+    background: #ef4444;
+    color: #fff;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cal-day-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+
+  .cal-day-count {
+    font-size: 12px;
+    color: #a1a1aa;
+  }
+
+  .cal-day-number {
+    font-size: 14px;
+    font-weight: 500;
+    color: #18181b;
+  }
+
+  /* Booking block */
+  .cal-booking {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.15s;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .cal-booking:hover {
+    opacity: 0.85;
+  }
+
+  .cal-booking-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .cal-booking-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cal-booking-prestation {
+    font-weight: 500;
+  }
+
+  .cal-booking-client {
+    color: #52525b;
+  }
+
+  .cal-more {
+    font-size: 11px;
+    color: #71717a;
+    padding: 2px 6px;
+    cursor: pointer;
+  }
+
+  .cal-more:hover {
+    color: #18181b;
+  }
+
+  /* Group Focus / Popover */
+  .cal-popover-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
+  }
+
+  .cal-popover {
+    position: fixed;
+    background: #fff;
+    border: 1px solid #e4e4e7;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+    padding: 16px;
+    min-width: 280px;
+    max-width: 320px;
+    z-index: 1000;
+  }
+
+  .cal-popover-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #18181b;
+  }
+
+  .cal-popover-desc {
+    font-size: 13px;
+    color: #71717a;
+    margin-bottom: 12px;
+  }
+
+  .cal-popover-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 13px;
+    color: #3f3f46;
+  }
+
+  .cal-popover-row svg {
+    width: 16px;
+    height: 16px;
+    stroke: #71717a;
+    flex-shrink: 0;
+  }
+
+  .cal-popover-divider {
+    height: 1px;
+    background: #e4e4e7;
+    margin: 12px 0;
+  }
+
+  .cal-popover-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 16px;
+    background: #fff;
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .cal-popover-btn:hover {
+    background: #f4f4f5;
+  }
+
+  .cal-popover-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Vue semaine */
+  .cal-week-grid {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    flex: 1;
+    min-height: 0;
+  }
+
+  .cal-grid-header {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    border-bottom: 1px solid #e4e4e7;
+    flex-shrink: 0;
+  }
+
+  .cal-grid-controls {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    flex-shrink: 0;
+    background: #f4f4f5;
+    border-bottom: 1px solid #e4e4e7;
+  }
+
+  .cal-grid-controls.bottom {
+    border-bottom: none;
+    border-top: 1px solid #e4e4e7;
+  }
+
+  .cal-grid-body {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .cal-week-header-cell {
+    padding: 0 4px;
+    text-align: center;
+    background: #fff;
+    border-right: 1px solid #e4e4e7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 44px;
+  }
+
+  .cal-week-header-cell:last-child {
+    border-right: none;
+  }
+
+  .cal-week-header-day {
+    font-size: 13px;
+    color: #71717a;
+    font-weight: 500;
+  }
+
+  .cal-week-header-date {
+    font-size: 14px;
+    font-weight: 600;
+    color: #18181b;
+  }
+
+  .cal-week-header-date.today {
+    background: #ef4444;
+    color: #fff;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    font-size: 12px;
+  }
+
+  .cal-control-cell {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid #e4e4e7;
+    cursor: pointer;
+    color: #71717a;
+  }
+
+  .cal-control-cell:last-child {
+    border-right: none;
+  }
+  
+  .cal-control-cell:hover {
+    background: #e4e4e7;
+  }
+
+  .cal-col {
+    border-right: 1px solid #e4e4e7;
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cal-col:last-child {
+    border-right: none;
+  }
+
+  .cal-time-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    font-size: 11px;
+    color: #a1a1aa;
+    border-bottom: 1px solid #f4f4f5;
+    flex: 1;
+  }
+
+  .cal-slot-cell {
+    border-bottom: 1px solid #f4f4f5;
+    flex: 1;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    position: relative;
+  }
+
+  .cal-slot-cell:hover {
+    background: #f4f4f5;
+  }
+
+  .cal-week-booking {
+    position: absolute;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    overflow: hidden;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .cal-week-booking.compact {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+  }
+
+  .cal-week-booking-time {
+    font-weight: 500;
+    font-size: 10px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+  }
+
+  .cal-week-booking.compact .cal-week-booking-time {
+    margin-bottom: 0;
+  }
+
+  .cal-week-booking-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+  }
+
+  /* Vue jour */
+  .cal-day-view {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    flex: 1;
+    min-height: 0;
+  }
+
+  .cal-day-view-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 16px;
+    background: #fff;
+    border-bottom: 1px solid #e4e4e7;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .cal-day-view-header-day {
+    font-size: 14px;
+    color: #71717a;
+  }
+
+  .cal-day-view-header-date {
+    font-size: 14px;
+    font-weight: 600;
+    color: #18181b;
+  }
+
+  .cal-day-body-grid {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .cal-day-controls {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    flex-shrink: 0;
+    background: #f4f4f5;
+    border-bottom: 1px solid #e4e4e7;
+  }
+
+  .cal-day-controls.bottom {
+    border-bottom: none;
+    border-top: 1px solid #e4e4e7;
+  }
+
+  .cal-day-view-booking {
+    position: absolute;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .cal-day-view-booking.compact {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 12px;
+  }
+
+  .cal-day-view-booking-time {
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    white-space: nowrap;
+  }
+
+  .cal-day-view-booking.compact .cal-day-view-booking-time {
+    margin-bottom: 0;
+  }
+
+  .cal-day-view-booking-title {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .cal-day-view-booking-client {
+    font-size: 12px;
+    color: #52525b;
+    white-space: nowrap;
+  }
+
+  .cal-day-view-booking.compact .cal-day-view-booking-title {
+    font-size: 12px;
+  }
+
+  .cal-day-view-booking.compact .cal-day-view-booking-client {
+    font-size: 11px;
+  }
+</style>
+
+<!--
+----------------------------------
+----------------------------------
+
+à updater dans bubble
+
+----------------------------------
+----------------------------------
+Remplace XXX par tes variables Bubble (bookings et users).
+Important: les attributs sont en guillemets simples ('') pour que le JSON (avec guillemets doubles) ne casse pas le HTML.
+-->
+<div class="balma-calendar" id="balmaCalendar" data-bookings='XXX' data-users='XXX'>
+  <!-- Header -->
+  <div class="cal-header">
+    <div class="cal-nav">
+      <button class="cal-nav-btn" id="prevBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+      </button>
+      <div class="cal-title" id="calTitle">Décembre 2025</div>
+      <button class="cal-nav-btn" id="nextBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
+      <button class="cal-today-btn" id="todayBtn">Aujourd'hui</button>
+    </div>
+
+    <div class="cal-filter">
+      <div class="cal-search-wrapper">
+        <svg class="cal-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" class="cal-search-input" id="searchInput" placeholder="Rechercher...">
+      </div>
+      <select class="cal-filter-select" id="userFilter">
+        <option value="">Tous les collaborateurs</option>
+      </select>
+    </div>
+
+    <div class="cal-views">
+      <button class="cal-view-btn active" data-view="month">Mois</button>
+      <button class="cal-view-btn" data-view="week">Semaine</button>
+      <button class="cal-view-btn" data-view="day">Jour</button>
+    </div>
+  </div>
+
+  <!-- Calendar Grid Container -->
+  <div id="calendarContent"></div>
+
+  <!-- Popover Template -->
+  <div id="popoverContainer"></div>
+</div>
+
+<script>
+(function() {
+  // Configuration
+  const DAYS_FR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+  const DAYS_FULL_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+  const MONTHS_FR = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+  const MONTHS_SHORT_FR = ['Janv.', 'Févr.', 'Mars', 'Avr.', 'Mai', 'Juin', 'Juil.', 'Août', 'Sept.', 'Oct.', 'Nov.', 'Déc.'];
+  const DEFAULT_COLOR = '#FEF3C7';
+
+  // State
+  let currentDate = new Date();
+  let currentView = 'month';
+  let viewStartHour = 9;
+  let viewEndHour = 19;
+  let selectedUserId = '';
+  let searchQuery = '';
+  let bookings = [];
+  let users = [];
+  let openPopover = null;
+
+  // DOM Elements
+  const calTitle = document.getElementById('calTitle');
+  const calContent = document.getElementById('calendarContent');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const todayBtn = document.getElementById('todayBtn');
+  const userFilter = document.getElementById('userFilter');
+  const searchInput = document.getElementById('searchInput');
+  const viewBtns = document.querySelectorAll('.cal-view-btn');
+  const popoverContainer = document.getElementById('popoverContainer');
+
+  // Parse le format Users Bubble : "id;;Full Name" séparés par |
+  function parseUsersFromBubble(text) {
+    if (!text) return [];
+    if (Array.isArray(text)) return text;
+    const parts = String(text).trim().split('|').map(p => p.trim()).filter(Boolean);
+    return parts.map(part => {
+      const [id, nom] = part.split(';;');
+      return { id: (id || '').trim(), nom: (nom || '').trim() };
+    });
+  }
+
+  // Parse le format Bookings Bubble : JSON array, object unique, ou JSONs séparés par |
+  function parseBookingsFromBubble(data) {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    const str = String(data).trim();
+    if (!str) return [];
+    try {
+      const parsed = JSON.parse(str);
+      return Array.isArray(parsed) ? parsed : [parsed];
+    } catch (_) {
+      const parts = str.split(/\}\s*\|\s*\{/);
+      if (parts.length === 1) {
+        try { return [JSON.parse(parts[0])]; } catch (__) { return []; }
+      }
+      return parts.map((part, i) => {
+        const wrapped = (i === 0 ? part + '}' : (i === parts.length - 1 ? '{' + part : '{' + part + '}'));
+        try { return JSON.parse(wrapped); } catch (__) { return null; }
+      }).filter(Boolean);
+    }
+  }
+
+  // Initialize
+  function init() {
+    loadData();
+    setupEventListeners();
+    render();
+  }
+
+  // ============================================
+  // DONNÉES - Depuis data-bookings / data-users (Bubble) ou balmaCalendarUpdateData
+  // ============================================
+  function loadData() {
+    const container = document.getElementById('balmaCalendar');
+    let dataBookings = container?.getAttribute?.('data-bookings');
+    let dataUsers = container?.getAttribute?.('data-users');
+
+    if (!dataBookings && typeof window.__BALMA_BOOKINGS__ !== 'undefined') dataBookings = window.__BALMA_BOOKINGS__;
+    if (!dataUsers && typeof window.__BALMA_USERS__ !== 'undefined') dataUsers = window.__BALMA_USERS__;
+
+    if (dataBookings) {
+      bookings = parseBookingsFromBubble(dataBookings);
+      if (typeof console !== 'undefined') console.log('[Balma Calendar] Données depuis data-bookings:', bookings.length, 'bookings');
+    }
+    if (dataUsers) {
+      users = parseUsersFromBubble(dataUsers);
+    }
+    if (bookings.length > 0 || users.length > 0) {
+      populateUserFilter();
+      return;
+    }
+
+    // Données de test (si aucune donnée Bubble)
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const day = today.getDate();
+
+    users = [
+      { id: '1', nom: 'Alice' },
+      { id: '2', nom: 'Bob' }
+    ];
+
+    bookings = [
+      {
+        id: '1',
+        date_debut: new Date(year, month, day, 10, 0).toISOString(),
+        date_fin: new Date(year, month, day, 11, 30).toISOString(),
+        prestation_nom: 'Coupe Femme',
+        client_prenom: 'Sophie',
+        client_nom: 'Martin',
+        couleur: '#FEF3C7',
+        responsable_id: '1',
+        lieu: 'Salon Principal',
+        statut: 'Confirmé'
+      },
+      {
+        id: '2',
+        date_debut: new Date(year, month, day, 14, 0).toISOString(),
+        date_fin: new Date(year, month, day, 15, 0).toISOString(),
+        prestation_nom: 'Brushing',
+        client_prenom: 'Julie',
+        client_nom: 'Dupont',
+        couleur: '#D1FAE5',
+        responsable_id: '2',
+        lieu: 'Salon Principal',
+        statut: 'En attente'
+      }
+    ];
+
+    populateUserFilter();
+  }
+
+  function populateUserFilter() {
+    userFilter.innerHTML = '<option value="">Tous les collaborateurs</option>';
+    users.forEach(user => {
+      const option = document.createElement('option');
+      option.value = user.id;
+      option.textContent = user.nom;
+      userFilter.appendChild(option);
+    });
+  }
+
+  function setupEventListeners() {
+    prevBtn.addEventListener('click', () => navigate(-1));
+    nextBtn.addEventListener('click', () => navigate(1));
+    todayBtn.addEventListener('click', () => {
+      currentDate = new Date();
+      render();
+    });
+
+    userFilter.addEventListener('change', (e) => {
+      selectedUserId = e.target.value;
+      render();
+    });
+
+    let searchTimeout;
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        searchQuery = e.target.value.trim();
+        render();
+      }, 250);
+    });
+
+    viewBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        viewBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentView = btn.dataset.view;
+        render();
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (openPopover && !e.target.closest('.cal-popover') && !e.target.closest('.cal-booking') && !e.target.closest('.cal-week-booking') && !e.target.closest('.cal-day-view-booking')) {
+        closePopover();
+      }
+    });
+  }
+
+  function navigate(direction) {
+    if (currentView === 'month') {
+      currentDate.setMonth(currentDate.getMonth() + direction);
+    } else if (currentView === 'week') {
+      currentDate.setDate(currentDate.getDate() + (direction * 7));
+    } else {
+      currentDate.setDate(currentDate.getDate() + direction);
+    }
+    render();
+  }
+
+  function render() {
+    updateTitle();
+    closePopover();
+
+    if (currentView === 'month') {
+      renderMonthView();
+    } else if (currentView === 'week') {
+      renderWeekView();
+    } else {
+      renderDayView();
+    }
+  }
+
+  function updateTitle() {
+    if (currentView === 'month') {
+      calTitle.textContent = `${MONTHS_FR[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+    } else if (currentView === 'week') {
+      const start = getWeekStart(currentDate);
+      const weekNum = getWeekNumber(start);
+      calTitle.textContent = `Semaine ${weekNum}`;
+    } else {
+      calTitle.textContent = `${DAYS_FULL_FR[currentDate.getDay()]} ${currentDate.getDate()} ${MONTHS_FR[currentDate.getMonth()]}`;
+    }
+  }
+
+  function getWeekStart(date) {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    d.setDate(diff);
+    return d;
+  }
+
+  function getWeekNumber(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+    var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+    return weekNo;
+  }
+
+  function getFilteredBookings() {
+    let filtered = bookings;
+    if (selectedUserId) {
+      filtered = filtered.filter(b => b.responsable_id === selectedUserId);
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(b => {
+        const presta = (b.prestation_nom || '').toLowerCase();
+        const prenom = (b.client_prenom || '').toLowerCase();
+        const nom = (b.client_nom || '').toLowerCase();
+        return presta.includes(q) || prenom.includes(q) || nom.includes(q);
+      });
+    }
+    return filtered;
+  }
+
+  function formatDateISO(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function getBookingLocalDateStr(booking) {
+    const date = new Date(booking.date_debut);
+    return formatDateISO(date);
+  }
+
+  function getBookingsForDate(date) {
+    const dateStr = formatDateISO(date);
+    return getFilteredBookings().filter(b => getBookingLocalDateStr(b) === dateStr);
+  }
+
+  function formatClientName(prenom, nom) {
+    if (!prenom && !nom) return '';
+    const initial = prenom ? prenom.charAt(0) + '.' : '';
+    return initial + (nom || '');
+  }
+
+  function formatTime(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function formatFullDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('fr-FR', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  function isToday(date) {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
+  }
+
+  // Month View
+  function renderMonthView() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+
+    let startDay = firstDay.getDay();
+    startDay = startDay === 0 ? 6 : startDay - 1;
+
+    let html = '<div class="cal-grid">';
+
+    // Header Row (Jours de la semaine)
+    html += '<div class="cal-grid-header-row">';
+    const dayHeaders = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    dayHeaders.forEach(day => {
+      html += `<div class="cal-day-header">${day}</div>`;
+    });
+    html += '</div>';
+
+    // Body (Semaines)
+    html += '<div class="cal-grid-body-rows">';
+    
+    // Calculer les jours à afficher
+    const days = [];
+    const prevMonth = new Date(year, month, 0);
+    // Jours du mois précédent
+    for (let i = startDay - 1; i >= 0; i--) {
+      const day = prevMonth.getDate() - i;
+      days.push({ date: new Date(year, month - 1, day), isOtherMonth: true });
+    }
+    // Jours du mois en cours
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+      days.push({ date: new Date(year, month, day), isOtherMonth: false });
+    }
+    // Jours du mois suivant (pour compléter la grille)
+    // On veut toujours afficher 6 semaines pour une hauteur stable, ou 5 selon le mois?
+    // Flexbox gérera la hauteur, donc le nombre de semaines importe peu, 
+    // mais pour une grille stable, on complète souvent jusqu'à la fin de la semaine ou un nombre fixe de cases.
+    // Ici on va juste compléter la dernière semaine.
+    // Optionnel : Forcer 6 semaines pour une uniformité parfaite.
+    // Calculons combien il faut pour finir la semaine en cours
+    let remaining = 7 - (days.length % 7);
+    if (remaining < 7) {
+        for (let day = 1; day <= remaining; day++) {
+            days.push({ date: new Date(year, month + 1, day), isOtherMonth: true });
+        }
+    }
+    
+    // Si on veut remplir verticalement, on peut avoir besoin de lignes vides si le mois est court?
+    // Flexbox répartira l'espace entre les semaines existantes (4, 5 ou 6).
+    // Si on veut que les cases aient toujours la même taille relative, il vaudrait mieux fixer à 6 semaines.
+    // Forçons 6 semaines (42 jours) pour éviter que les cases sautent de taille.
+    while (days.length < 42) {
+        const lastDate = days[days.length - 1].date;
+        const nextDate = new Date(lastDate);
+        nextDate.setDate(nextDate.getDate() + 1);
+        days.push({ date: nextDate, isOtherMonth: true });
+    }
+
+    // Rendu par semaines (lignes)
+    for (let i = 0; i < days.length; i += 7) {
+        html += '<div class="cal-week-row">';
+        for (let j = 0; j < 7; j++) {
+            if (i + j < days.length) {
+                const dayObj = days[i + j];
+                html += renderDayCell(dayObj.date, dayObj.isOtherMonth);
+            }
+        }
+        html += '</div>';
+    }
+
+    html += '</div>'; // End body rows
+    html += '</div>'; // End grid
+    calContent.innerHTML = html;
+
+    document.querySelectorAll('.cal-booking').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const bookingId = el.dataset.id;
+        const booking = bookings.find(b => b.id === bookingId);
+        if (booking) showPopover(booking, el);
+      });
+    });
+
+    document.querySelectorAll('.cal-day').forEach(el => {
+      el.addEventListener('click', () => {
+        const fn = getBubbleFn('showBooking');
+        if (fn) fn();
+      });
+    });
+  }
+
+  function renderDayCell(date, isOtherMonth) {
+    const dayBookings = getBookingsForDate(date);
+    const todayClass = isToday(date) ? ' today' : '';
+    const otherClass = isOtherMonth ? ' other-month' : '';
+
+    let html = `<div class="cal-day${todayClass}${otherClass}" data-date="${formatDateISO(date)}">`;
+    html += '<div class="cal-day-top">';
+    html += `<span class="cal-day-count">${dayBookings.length || ''}</span>`;
+    html += `<span class="cal-day-number">${date.getDate()}</span>`;
+    html += '</div>';
+
+    const maxVisible = 2;
+    dayBookings.slice(0, maxVisible).forEach(booking => {
+      html += renderBookingBlock(booking);
+    });
+
+    if (dayBookings.length > maxVisible) {
+      html += `<div class="cal-more">+${dayBookings.length - maxVisible} autres</div>`;
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  function renderBookingBlock(booking) {
+    const clientName = formatClientName(booking.client_prenom, booking.client_nom);
+    const color = booking.couleur || DEFAULT_COLOR;
+
+    return `
+      <div class="cal-booking" data-id="${booking.id}" style="background: ${color}">
+        <svg class="cal-booking-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <span class="cal-booking-text">
+          <span class="cal-booking-prestation">${booking.prestation_nom}</span>
+          ${clientName ? `<span class="cal-booking-client"> · ${clientName}</span>` : ''}
+        </span>
+      </div>
+    `;
+  }
+
+  // Attache les listeners sur les boutons haut/bas après rendu
+  function attachAdjustListeners() {
+    calContent.querySelectorAll('[data-adjust]').forEach(el => {
+      el.addEventListener('click', () => {
+        const dir = el.dataset.adjust;
+        if (dir === 'up') window.balmaAdjustHours(-1, 0);
+        else if (dir === 'down') window.balmaAdjustHours(0, 1);
+      });
+    });
+  }
+
+  // Calcul des colonnes pour bookings chevauchants
+  function computeOverlapColumns(dayBookings) {
+    // Trier par heure de début
+    const sorted = dayBookings.slice().sort((a, b) => {
+      return new Date(a.date_debut) - new Date(b.date_debut);
+    });
+    const groups = []; // groupes de bookings qui se chevauchent
+    let currentGroup = [];
+    let groupEnd = -Infinity;
+
+    sorted.forEach(booking => {
+      const start = new Date(booking.date_debut).getTime();
+      const end = new Date(booking.date_fin).getTime();
+      if (start < groupEnd) {
+        // Chevauche le groupe courant
+        currentGroup.push(booking);
+        groupEnd = Math.max(groupEnd, end);
+      } else {
+        if (currentGroup.length > 0) groups.push(currentGroup);
+        currentGroup = [booking];
+        groupEnd = end;
+      }
+    });
+    if (currentGroup.length > 0) groups.push(currentGroup);
+
+    // Pour chaque groupe, assigner une colonne
+    const result = new Map(); // bookingId -> { col, totalCols }
+    groups.forEach(group => {
+      const columns = [];
+      group.forEach(booking => {
+        const bStart = new Date(booking.date_debut).getTime();
+        // Trouver la première colonne libre
+        let placed = false;
+        for (let c = 0; c < columns.length; c++) {
+          const lastEnd = columns[c];
+          if (bStart >= lastEnd) {
+            columns[c] = new Date(booking.date_fin).getTime();
+            result.set(booking.id, { col: c, totalCols: 0 });
+            placed = true;
+            break;
+          }
+        }
+        if (!placed) {
+          result.set(booking.id, { col: columns.length, totalCols: 0 });
+          columns.push(new Date(booking.date_fin).getTime());
+        }
+      });
+      // Mettre à jour totalCols pour tout le groupe
+      const total = columns.length;
+      group.forEach(booking => {
+        const info = result.get(booking.id);
+        if (info) info.totalCols = total;
+      });
+    });
+    return result;
+  }
+
+  // Week View
+  function renderWeekView() {
+    const weekStart = getWeekStart(currentDate);
+    const totalHours = viewEndHour - viewStartHour + 1;
+    
+    // Main Container
+    let html = '<div class="cal-week-grid">';
+
+    // 1. Header Row (Sticky is handled by CSS if we keep it inside, but here we separate it)
+    // Actually, with flex column layout, we just put it first.
+    html += '<div class="cal-grid-header">';
+    html += '<div class="cal-week-header-cell"></div>'; // Corner
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(weekStart);
+      date.setDate(date.getDate() + d);
+      const todayClass = isToday(date) ? ' today' : '';
+      html += `
+        <div class="cal-week-header-cell">
+          <div class="cal-week-header-day">${DAYS_FR[date.getDay()]}</div>
+          <div class="cal-week-header-date${todayClass}">${date.getDate()}</div>
+          <div class="cal-week-header-day">${MONTHS_SHORT_FR[date.getMonth()]}</div>
+        </div>
+      `;
+    }
+    html += '</div>'; // End Header
+
+    // 2. Up Controls
+    html += '<div class="cal-grid-controls">';
+    if (viewStartHour > 0) {
+      html += `<div class="cal-control-cell" data-adjust="up">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+      </div>`;
+    } else {
+      html += '<div class="cal-control-cell"></div>';
+    }
+    for(let i=0; i<7; i++) {
+        html += '<div class="cal-control-cell"></div>';
+    }
+    html += '</div>';
+
+    // 3. Body (Time & Bookings)
+    html += '<div class="cal-grid-body">';
+    
+    // Time Column
+    html += '<div class="cal-col">';
+    for (let h = viewStartHour; h <= viewEndHour; h++) {
+      html += `<div class="cal-time-cell">${h}:00</div>`;
+    }
+    html += '</div>';
+
+    // Day Columns
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(weekStart);
+      date.setDate(date.getDate() + d);
+      const dayBookings = getBookingsForDate(date);
+
+      html += '<div class="cal-col cal-week-day-col">';
+      // Grid lines
+      for (let h = viewStartHour; h <= viewEndHour; h++) {
+        html += '<div class="cal-slot-cell"></div>';
+      }
+
+      // Bookings (avec gestion des chevauchements)
+      const overlapMap = computeOverlapColumns(dayBookings);
+      dayBookings.forEach(booking => {
+        const startTime = new Date(booking.date_debut);
+        const endTime = new Date(booking.date_fin);
+        const startHour = startTime.getHours() + startTime.getMinutes() / 60;
+        const endHour = endTime.getHours() + endTime.getMinutes() / 60;
+
+        if (endHour > viewStartHour && startHour < (viewEndHour + 1)) {
+            const effectiveStart = Math.max(startHour, viewStartHour);
+            const effectiveEnd = Math.min(endHour, viewEndHour + 1);
+
+            const topPct = ((effectiveStart - viewStartHour) / totalHours) * 100;
+            const heightPct = ((effectiveEnd - effectiveStart) / totalHours) * 100;
+            const color = booking.couleur || DEFAULT_COLOR;
+            const durationMin = (endHour - startHour) * 60;
+            const compactClass = durationMin <= 30 ? ' compact' : '';
+
+            const info = overlapMap.get(booking.id) || { col: 0, totalCols: 1 };
+            const colWidthPct = (100 / info.totalCols);
+            const leftPct = info.col * colWidthPct;
+
+            html += `
+              <div class="cal-week-booking${compactClass}" data-id="${booking.id}" style="top: ${topPct}%; height: ${heightPct}%; left: calc(${leftPct}% + 2px); width: calc(${colWidthPct}% - 4px); background: ${color}">
+                <div class="cal-week-booking-time">${formatTime(booking.date_debut)}</div>
+                <div class="cal-week-booking-title">${booking.prestation_nom}</div>
+              </div>
+            `;
+        }
+      });
+      html += '</div>'; // End col
+    }
+    html += '</div>'; // End Body
+
+    // 4. Down Controls
+    html += '<div class="cal-grid-controls bottom">';
+    if (viewEndHour < 23) {
+      html += `<div class="cal-control-cell" data-adjust="down">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>`;
+    } else {
+      html += '<div class="cal-control-cell"></div>';
+    }
+    for(let i=0; i<7; i++) {
+        html += '<div class="cal-control-cell"></div>';
+    }
+    html += '</div>';
+
+    html += '</div>'; // End Grid Container
+    calContent.innerHTML = html;
+
+    // Attach events
+    document.querySelectorAll('.cal-week-booking').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const bookingId = el.dataset.id;
+        const booking = bookings.find(b => b.id === bookingId);
+        if (booking) showPopover(booking, el);
+      });
+    });
+
+    document.querySelectorAll('.cal-week-day-col').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if (!e.target.closest('.cal-week-booking')) {
+          const fn = getBubbleFn('showBooking');
+          if (fn) fn();
+        }
+      });
+    });
+
+    attachAdjustListeners();
+  }
+
+  // Day View
+  function renderDayView() {
+    const totalHours = viewEndHour - viewStartHour + 1;
+    const dayBookings = getBookingsForDate(currentDate);
+
+    let html = '<div class="cal-day-view">';
+
+    // 1. Header
+    html += `
+      <div class="cal-day-view-header">
+        <div class="cal-day-view-header-day">${DAYS_FULL_FR[currentDate.getDay()]}</div>
+        <div class="cal-day-view-header-date">${currentDate.getDate()}</div>
+      </div>
+    `;
+
+    // 2. Up Controls
+    html += '<div class="cal-day-controls">';
+    if (viewStartHour > 0) {
+      html += `<div class="cal-control-cell" data-adjust="up">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+      </div>`;
+    } else {
+      html += '<div class="cal-control-cell"></div>';
+    }
+    html += '<div class="cal-control-cell"></div>';
+    html += '</div>';
+
+    // 3. Body
+    html += '<div class="cal-day-body-grid">';
+    
+    // Time Column
+    html += '<div class="cal-col">';
+    for (let h = viewStartHour; h <= viewEndHour; h++) {
+      html += `<div class="cal-time-cell">${h}:00</div>`;
+    }
+    html += '</div>';
+
+    // Content Column
+    html += '<div class="cal-col cal-day-view-slots">';
+    // Grid Lines
+    for (let h = viewStartHour; h <= viewEndHour; h++) {
+      html += '<div class="cal-slot-cell"></div>';
+    }
+
+    // Bookings (avec gestion des chevauchements)
+    const overlapMap = computeOverlapColumns(dayBookings);
+    dayBookings.forEach(booking => {
+      const startTime = new Date(booking.date_debut);
+      const endTime = new Date(booking.date_fin);
+      const startHour = startTime.getHours() + startTime.getMinutes() / 60;
+      const endHour = endTime.getHours() + endTime.getMinutes() / 60;
+
+      if (endHour > viewStartHour && startHour < (viewEndHour + 1)) {
+        const effectiveStart = Math.max(startHour, viewStartHour);
+        const effectiveEnd = Math.min(endHour, viewEndHour + 1);
+
+        const topPct = ((effectiveStart - viewStartHour) / totalHours) * 100;
+        const heightPct = ((effectiveEnd - effectiveStart) / totalHours) * 100;
+        const color = booking.couleur || DEFAULT_COLOR;
+        const clientName = formatClientName(booking.client_prenom, booking.client_nom);
+        const durationMin = (endHour - startHour) * 60;
+        const compactClass = durationMin <= 30 ? ' compact' : '';
+
+        const info = overlapMap.get(booking.id) || { col: 0, totalCols: 1 };
+        const colWidthPct = (100 / info.totalCols);
+        const leftPct = info.col * colWidthPct;
+
+        html += `
+          <div class="cal-day-view-booking${compactClass}" data-id="${booking.id}" style="top: ${topPct}%; height: ${heightPct}%; left: calc(${leftPct}% + 4px); width: calc(${colWidthPct}% - 8px); background: ${color}">
+            <div class="cal-day-view-booking-time">${formatTime(booking.date_debut)} - ${formatTime(booking.date_fin)}</div>
+            <div class="cal-day-view-booking-title">${booking.prestation_nom}</div>
+            ${clientName ? `<div class="cal-day-view-booking-client">${clientName}</div>` : ''}
+          </div>
+        `;
+      }
+    });
+    html += '</div>'; // End content col
+    html += '</div>'; // End body
+
+    // 4. Down Controls
+    html += '<div class="cal-day-controls bottom">';
+    if (viewEndHour < 23) {
+      html += `<div class="cal-control-cell" data-adjust="down">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>`;
+    } else {
+      html += '<div class="cal-control-cell"></div>';
+    }
+    html += '<div class="cal-control-cell"></div>';
+    html += '</div>';
+
+    html += '</div>'; // End View
+    calContent.innerHTML = html;
+
+    document.querySelectorAll('.cal-day-view-booking').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const bookingId = el.dataset.id;
+        const booking = bookings.find(b => b.id === bookingId);
+        if (booking) showPopover(booking, el);
+      });
+    });
+
+    document.querySelectorAll('.cal-day-view-slots').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if (!e.target.closest('.cal-day-view-booking')) {
+          const fn = getBubbleFn('showBooking');
+          if (fn) fn();
+        }
+      });
+    });
+
+    attachAdjustListeners();
+  }
+
+  // Popover
+  function showPopover(booking, targetEl) {
+    closePopover();
+
+    const rect = targetEl.getBoundingClientRect();
+    const popoverWidth = 320;
+    const gap = 8;
+
+    const html = `
+      <div class="cal-popover-overlay"></div>
+      <div class="cal-popover" style="top: 0px; left: 0px; visibility: hidden;">
+        <div class="cal-popover-title">${booking.prestation_nom}</div>
+        <div class="cal-popover-desc">${booking.prestation_description || ''}</div>
+
+        <div class="cal-popover-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span>${formatFullDate(booking.date_debut)}</span>
+        </div>
+
+        <div class="cal-popover-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <span>${booking.lieu || 'Non défini'}</span>
+        </div>
+
+        <div class="cal-popover-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          <span>${booking.statut || 'Non défini'}</span>
+        </div>
+
+        <div class="cal-popover-divider"></div>
+
+        <button class="cal-popover-btn" data-open-booking="${booking.id}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          Détails
+        </button>
+      </div>
+    `;
+
+    popoverContainer.innerHTML = html;
+    openPopover = booking;
+
+    // Attacher le listener sur le bouton Détails
+    const openBtn = popoverContainer.querySelector('[data-open-booking]');
+    if (openBtn) {
+      openBtn.addEventListener('click', () => {
+        window.balmaCalendarOpenBooking(openBtn.dataset.openBooking);
+      });
+    }
+
+    const popover = popoverContainer.querySelector('.cal-popover');
+    const zeroRect = popover.getBoundingClientRect();
+    const offsetX = zeroRect.left;
+    const offsetY = zeroRect.top;
+
+    let popTop = rect.top - offsetY;
+    let popLeft = rect.right + gap - offsetX;
+
+    if (popLeft + popoverWidth > window.innerWidth - offsetX) {
+      popLeft = rect.left - offsetX - popoverWidth - gap;
+    }
+    if (popLeft < -offsetX) popLeft = gap - offsetX;
+
+    if (popTop + zeroRect.height > window.innerHeight - offsetY) {
+      popTop = rect.bottom - offsetY - zeroRect.height;
+    }
+
+    popover.style.top = popTop + 'px';
+    popover.style.left = popLeft + 'px';
+    popover.style.visibility = 'visible';
+  }
+
+  function closePopover() {
+    popoverContainer.innerHTML = '';
+    openPopover = null;
+  }
+
+  // ============================================
+  // FONCTIONS POUR BUBBLE
+  // ============================================
+
+  // Helper : Adjust view hours (startDelta, endDelta)
+  window.balmaAdjustHours = function(startDelta, endDelta) {
+    if (startDelta < 0 && viewStartHour > 0) {
+      viewStartHour--;
+      viewEndHour--;
+    }
+    if (endDelta > 0 && viewEndHour < 23) {
+      viewEndHour++;
+      viewStartHour++;
+    }
+    render();
+  };
+
+  // Helper : accéder aux fonctions Bubble (parent = page principale, car HTML dans iframe)
+  function getBubbleFn(name) {
+    const fnName = 'bubble_fn_' + name;
+    try {
+      if (window.parent && typeof window.parent[fnName] === 'function') {
+        return window.parent[fnName];
+      }
+    } catch (e) { /* cross-origin */ }
+    return typeof window[fnName] === 'function' ? window[fnName] : null;
+  }
+
+  // Appelé quand on clique sur "Détails"
+  // Navigue vers la page avec les paramètres action=show-booking et booking=bookingID
+  window.balmaCalendarOpenBooking = function(bookingId) {
+    // Cache de l'URL de base pour éviter de la recalculer
+    const baseUrl = window.top.location.origin + window.top.location.pathname;
+    const params = `?action=show-booking&booking=${encodeURIComponent(bookingId)}`;
+    const newUrl = baseUrl + params;
+    
+    // Utiliser history.pushState qui ne déclenche pas beforeunload
+    try {
+      window.top.history.pushState({}, '', newUrl);
+      // Déclencher des événements pour que Bubble détecte le changement
+      window.top.dispatchEvent(new PopStateEvent('popstate'));
+      window.top.dispatchEvent(new Event('hashchange'));
+    } catch (e) {
+      // Fallback si pushState ne fonctionne pas (cross-origin)
+      window.top.location.href = newUrl;
+    }
+    
+    closePopover();
+  };
+
+  // Pour mettre à jour les données depuis Bubble (workflow "Run JavaScript")
+  window.balmaCalendarUpdateData = function(newBookings, newUsers) {
+    if (newBookings !== undefined && newBookings !== null) {
+      bookings = parseBookingsFromBubble(newBookings);
+      if (typeof console !== 'undefined') console.log('[Balma Calendar] Données reçues:', bookings.length, 'bookings');
+    }
+    if (newUsers !== undefined && newUsers !== null) {
+      users = parseUsersFromBubble(newUsers);
+      populateUserFilter();
+    }
+    render();
+  };
+
+  // Initialize
+  init();
+
+  // Signaler à Bubble que le calendrier est chargé (parent = page Bubble, car HTML dans iframe)
+  // Retry si la fct n'est pas encore prête (timing)
+  function signalCalendarReady() {
+    // Augmenter le nombre de retries pour les pages lentes
+    const retries = 50; 
+    let n = 0;
+    
+    // Essai immédiat
+    let fn = getBubbleFn('event');
+    if (fn) {
+      fn();
+      return;
+    }
+
+    const t = setInterval(function() {
+      n++;
+      fn = getBubbleFn('event');
+      if (fn) {
+        clearInterval(t);
+        fn();
+      } else if (n >= retries) {
+        clearInterval(t);
+        console.warn('bubble_fn_event non trouvé après 10 secondes. Vérifiez le suffixe dans Bubble.');
+      }
+    }, 200);
+  }
+  signalCalendarReady();
+})();
+</script>
