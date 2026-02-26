@@ -30,23 +30,55 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <style>
+        :root { --theme: #C9A227; --theme-hover: #B7950B; }
         .font-geist { font-family: 'Inter', sans-serif; }
         .font-space { font-family: 'Space Grotesk', sans-serif; }
-        
-        .time-slot {
-            transition: all 0.2s ease;
-        }
+
+        .time-slot { transition: all 0.2s ease; }
         .time-slot:hover {
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(201, 162, 39, 0.2);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--theme) 25%, transparent);
         }
-        .time-slot.selected {
-            background-color: #C9A227;
-            color: white;
+        .time-slot.selected { background-color: var(--theme); color: white; }
+        .time-slot.disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .btn-theme { background-color: var(--theme); color: white; }
+        .btn-theme:hover { background-color: var(--theme-hover); }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none; border-color: var(--theme);
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--theme) 25%, transparent);
         }
-        .time-slot.disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
+        input[type="checkbox"]:checked { accent-color: var(--theme); }
+
+        /* Placeholders en gris 400 */
+        input::placeholder { color: #9ca3af; }
+        select option[value=""] { color: #9ca3af; }
+        select.placeholder-gray { color: #9ca3af; }
+        select.placeholder-gray:focus { color: #111827; }
+
+        /* Popup de confirmation */
+        .popup-overlay {
+            position: fixed; inset: 0; z-index: 50;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+            display: flex; align-items: flex-end; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.25s ease;
+            padding: 1rem;
+        }
+        .popup-overlay.visible { opacity: 1; visibility: visible; }
+        .popup-card {
+            background: white; border-radius: 1rem; padding: 1.5rem;
+            max-width: 400px; width: 100%; text-align: center;
+            transform: translateY(100%); transition: transform 0.3s ease;
+        }
+        .popup-overlay.visible .popup-card { transform: translateY(0); }
+        @media (min-width: 640px) {
+            .popup-overlay { align-items: center; }
+            .popup-card {
+                padding: 2rem; width: 90%;
+                transform: translateY(16px);
+            }
+            .popup-overlay.visible .popup-card { transform: translateY(0); }
         }
     </style>
 </head>
@@ -82,11 +114,11 @@
         </div>
 
         <!-- Section 2: Sélection de date et heure -->
-        <div>
+        <div class="mb-8">
             <h2 class="font-space font-semibold text-lg text-gray-900 mb-4">2 - Sélection de la date et heure</h2>
             
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <!-- Navigation -->
+            <!-- Vue calendrier (choix du créneau) -->
+            <div id="step-select-block" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div class="flex items-center justify-between mb-6">
                     <button id="prev-week" onclick="navigateWeek(-1)" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Semaine précédente">
                         <iconify-icon icon="lucide:chevron-left" width="24"></iconify-icon>
@@ -96,12 +128,73 @@
                         <iconify-icon icon="lucide:chevron-right" width="24"></iconify-icon>
                     </button>
                 </div>
+                <div id="dates-container" class="grid gap-3 sm:gap-4"></div>
+            </div>
 
-                <!-- Dates et créneaux -->
-                <div id="dates-container" class="grid grid-cols-7 gap-4">
-                    <!-- Les dates seront générées dynamiquement -->
+            <!-- Vue récap (date/heure choisie + Modifier) -->
+            <div id="step-recap-block" class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <iconify-icon icon="lucide:calendar-clock" width="22" class="text-gray-500"></iconify-icon>
+                        <span id="recap-date-time" class="text-gray-900 font-medium">Mercredi 25/02 à 13h30</span>
+                    </div>
+                    <button type="button" onclick="goBackToSelectTime()" class="text-sm text-gold-600 hover:text-gold-700 font-medium underline">
+                        Modifier
+                    </button>
                 </div>
             </div>
+        </div>
+
+        <!-- Section 3: Informations personnelles (visible après choix du créneau) -->
+        <div id="step-form-block" class="hidden">
+            <h2 class="font-space font-semibold text-lg text-gray-900 mb-4">3 - Informations personnelles</h2>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <form id="booking-form" onsubmit="submitBooking(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="input-prenom" class="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+                            <input type="text" id="input-prenom" name="prenom" required placeholder="Type here..." class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 placeholder-gray-400">
+                        </div>
+                        <div>
+                            <label for="input-nom" class="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                            <input type="text" id="input-nom" name="nom" required placeholder="Type here..." class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 placeholder-gray-400">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="input-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="input-email" name="email" required placeholder="Type here..." class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 placeholder-gray-400">
+                    </div>
+                    <div>
+                        <label for="input-tel" class="block text-sm font-medium text-gray-700 mb-1">Tel (mobile)</label>
+                        <input type="tel" id="input-tel" name="tel" placeholder="Type here..." class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 placeholder-gray-400">
+                        <p class="mt-1 text-xs text-gray-500">Sert uniquement pour vous envoyer des rappels sur WhatsApp</p>
+                    </div>
+                    <div class="flex items-start gap-3 pt-2">
+                        <input type="checkbox" id="input-consent" name="consent" required class="mt-1 h-4 w-4 rounded border-gray-300 text-gold-600 focus:ring-gold-500">
+                        <label for="input-consent" class="text-sm text-gray-700">J'accepte d'envoyer mes données</label>
+                    </div>
+                    <div class="pt-4">
+                        <button type="submit" class="w-full sm:w-auto px-8 py-3 btn-theme font-medium rounded-lg transition-colors shadow-sm">
+                            Valider la réservation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup de confirmation -->
+    <div id="popup-confirmation" class="popup-overlay" onclick="closePopup(event)">
+        <div class="popup-card">
+            <div class="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-4" style="background-color: color-mix(in srgb, var(--theme) 15%, white);">
+                <iconify-icon icon="lucide:calendar-check" width="28" style="color: var(--theme);"></iconify-icon>
+            </div>
+            <h3 class="font-space font-semibold text-lg text-gray-900 mb-2">Rendez-vous confirmé !</h3>
+            <p class="text-sm text-gray-600 mb-1">Votre réservation a bien été enregistrée.</p>
+            <p class="text-sm text-gray-600 mb-6">Vous recevrez un e-mail de confirmation sous quelques instants.</p>
+            <button onclick="closePopup()" class="px-6 py-2.5 btn-theme font-medium rounded-lg transition-colors text-sm">
+                Fermer
+            </button>
         </div>
     </div>
 
@@ -111,68 +204,113 @@
         const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
         
         // ============================================
-        // ⭐ VARIABLES BRUTES : COLLER VOS DONNÉES ICI ⭐
+        // ⭐ VARIABLES : PRESTATION, SLOTS, BOOKINGS ⭐
         // ============================================
-        // Remplacez XXX par vos données au format JSON séparées par ;;
+        // 1 = Prestation sélectionnée (JSON ou format key="value";key="value")
+        // 2 = Slots disponibles (JSON séparés par ;;)
+        // 3 = Bookings déjà réservés (JSON séparés par ;;)
         // ============================================
         
-        // ⚠️ COLLER VOS SLOTS ICI (format JSON séparés par ;;)
-        const RAW_SLOTS_DATA = `XXX`;
-        // Format attendu: {"id":"...","date_begin":"ISO","date_end":"ISO"};;{"id":"...","date_begin":"ISO","date_end":"ISO"};;...
+        // 1 — Prestation sélectionnée
+        const RAW_PRESTATION_DATA = `{"id":"1771928375483x597075253613822000","nom":"Coiffure","prix":"100","duree_heure":"1","duree_min":"30","adresse":"64200 Biarritz, France","description":""}`;
         
-        // ⚠️ COLLER VOS BOOKINGS ICI (format JSON séparés par ;;)
-        const RAW_BOOKINGS_DATA = `XXX`;
-        // Format attendu: {"id":"...","date_begin":"ISO","date_end":"..."};;{"id":"...","date_begin":"ISO","date_end":"..."};;...
+        // 2 — Slots = plages horaires récurrentes par JOUR DE SEMAINE (pas de date). Format: hour_begin, minute_begin, hour_end, minute_end, jours (0=Dim, 1=Lun, … 6=Sam ; "1,2,3,4,5" = lun-ven)
+        const RAW_SLOTS_DATA = `{"id":"1771928321733x243554523147105470","hour_begin":"9","minute_begin":"30","hour_end":"12","minute_end":"0","jours":"1,2,3,4,5","dispo":"1771928321720x716514529429839900"};;{"id":"1771928321765x844923959797895700","hour_begin":"9","minute_begin":"30","hour_end":"18","minute_end":"0","jours":"1,2,3,4,5","dispo":"1771928321737x875153329616610300"};;{"id":"1771928321954x406990276821348500","hour_begin":"9","minute_begin":"30","hour_end":"18","minute_end":"0","jours":"1,2,3,4,5","dispo":"1771928321866x921897572886027000"};;{"id":"1771928322074x441864314100222100","hour_begin":"9","minute_begin":"30","hour_end":"18","minute_end":"0","jours":"1,2,3,4,5","dispo":"1771928321950x283465656635218720"};;{"id":"1771928357707x937558869278195700","hour_begin":"14","minute_begin":"30","hour_end":"18","minute_end":"0","jours":"1,2,3,4,5","dispo":"1771928321720x716514529429839900"}`;
         
+        // 3 — Liste des bookings déjà réservés (avec date)
+        const RAW_BOOKINGS_DATA = `{"id":"1771932511741x139368858190536130","date_begin":"2026-02-04T08:00:00.000Z","date_end":"Feb 4, 2026 10:00 am"}`;
+        
+        // 4 — Couleur du thème du site (hex)
+        const RAW_THEME_COLOR = `#C9A227`;
+
         // ============================================
-        // FIN VARIABLES BRUTES
+        // FIN VARIABLES
         // ============================================
         
         // État
         let currentWeekStart = new Date();
         let selectedDate = null;
         let selectedTime = null;
+        let step = 'select'; // 'select' | 'form'
         let prestation = null;
         let professional = null;
-        let availableSlots = []; // Format: [{ date: "2026-02-18", start: "09:00", end: "18:00" }, ...]
-        let reservations = []; // Format: [{ date: "2026-02-18", start: "10:00", end: "11:30" }, ...]
+        let recurringSlots = []; // Plages récurrentes par jour: [{ jours: [1,2,3,4,5], start: "09:30", end: "18:00" }, ...]
+        let reservations = []; // Bookings avec date: [{ date: "2026-02-18", start: "10:00", end: "11:30" }, ...]
         const maxWeeksAhead = 8; // 2 mois environ
+
+        function darkenColor(hex, amount) {
+            const h = hex.replace('#', '');
+            const r = Math.max(0, Math.round(parseInt(h.substring(0, 2), 16) * (1 - amount)));
+            const g = Math.max(0, Math.round(parseInt(h.substring(2, 4), 16) * (1 - amount)));
+            const b = Math.max(0, Math.round(parseInt(h.substring(4, 6), 16) * (1 - amount)));
+            return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+        }
 
         // Initialisation
         function init() {
-            // Récupérer les paramètres de l'URL
+            // Appliquer la couleur du thème
+            if (typeof RAW_THEME_COLOR !== 'undefined' && RAW_THEME_COLOR.trim()) {
+                const c = RAW_THEME_COLOR.trim();
+                document.documentElement.style.setProperty('--theme', c);
+                // Générer une couleur hover plus foncée (~15% plus sombre)
+                document.documentElement.style.setProperty('--theme-hover', darkenColor(c, 0.15));
+            }
+
             const urlParams = new URLSearchParams(window.location.search);
             const prestationId = urlParams.get('prestation');
             
-            // Charger les données (à remplacer par des appels API réels)
-            loadPrestation(prestationId);
-            loadProfessional();
+            loadPrestationFromRaw(prestationId);
+            loadProfessionalFromPrestation();
             loadSlotsAndReservations();
-            
-            // Initialiser la semaine courante
-            currentWeekStart = getWeekStart(new Date());
-            
+            // Premier jour affiché = aujourd'hui (pas le lundi)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            currentWeekStart = new Date(today);
             render();
         }
 
-        function loadPrestation(id) {
-            // TODO: Charger depuis API
-            // Pour l'instant, données de test
-            prestation = {
-                id: id || '1',
-                nom: 'Make up jour',
-                duree_heure: 1,
-                duree_min: 0,
-                prix: '100€'
-            };
+        // Parse prestation : JSON ou format "key"="value";"key2"="value2"
+        function parsePrestationData(raw) {
+            if (!raw || (typeof raw === 'string' && raw.trim() === '')) return null;
+            const s = typeof raw === 'string' ? raw.trim() : raw;
+            try {
+                if (s.startsWith('{')) {
+                    let jsonStr = s;
+                    if (s.includes('"="')) {
+                        jsonStr = s.replace(/"\s*=\s*"/g, '":"').replace(/";\s*"/g, '","').replace(/";\s*}$/, '"}');
+                    }
+                    const o = JSON.parse(jsonStr);
+                    return {
+                        id: o.id || '',
+                        nom: o.nom || '',
+                        prix: o.prix != null ? String(o.prix) : '',
+                        duree_heure: parseInt(o.duree_heure || o['duree heure'] || '0', 10) || 0,
+                        duree_min: parseInt(o.duree_min || o['duree min'] || '0', 10) || 0,
+                        adresse: o.adresse || '',
+                        description: o.description || ''
+                    };
+                }
+            } catch (e) {
+                console.warn('Erreur parsing prestation:', e);
+            }
+            return null;
+        }
+
+        function loadPrestationFromRaw(idFromUrl) {
+            let raw = typeof RAW_PRESTATION_DATA !== 'undefined' ? RAW_PRESTATION_DATA : '';
+            prestation = parsePrestationData(raw);
+            if (!prestation) {
+                prestation = { id: idFromUrl || '1', nom: 'Prestation', duree_heure: 1, duree_min: 0, prix: '', adresse: '', description: '' };
+            } else if (idFromUrl) {
+                prestation.id = idFromUrl;
+            }
             updatePrestationCard();
         }
 
-        function loadProfessional() {
-            // TODO: Charger depuis API
+        function loadProfessionalFromPrestation() {
             professional = {
-                nom: 'Willie Groset',
-                adresse: '35 rue des mouettes, 64200 Biarritz',
+                nom: 'Professionnel',
+                adresse: (prestation && prestation.adresse) ? prestation.adresse : '',
                 photo: ''
             };
             updateProfessionalHeader();
@@ -200,33 +338,38 @@
             if (slotsText || bookingsText) {
                 parseDataFromText(slotsText, bookingsText);
             } else {
-                // Aucune donnée disponible
-                availableSlots = [];
+                recurringSlots = [];
                 reservations = [];
             }
         }
-        
-        // Fonction pour parser les données depuis du texte brut
+
+        /** Parse "jours" (0=Dim…6=Sam) : "1,2,3,4,5" ou [1,2,3] ou jour unique. Par défaut tous les jours. */
+        function parseJours(slot) {
+            const raw = slot.jours !== undefined ? slot.jours : slot.jour;
+            if (raw === undefined || raw === null || raw === '') return [0, 1, 2, 3, 4, 5, 6];
+            if (Array.isArray(raw)) return raw.map(Number).filter(n => n >= 0 && n <= 6);
+            const str = String(raw).trim();
+            if (!str) return [0, 1, 2, 3, 4, 5, 6];
+            return str.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n >= 0 && n <= 6);
+        }
+
+        // Parser les slots (heures + jours, sans date) et les bookings (avec date)
         function parseDataFromText(slotsText, bookingsText) {
-            // ========== PARSING DES SLOTS ==========
-            availableSlots = [];
+            // ========== PARSING DES SLOTS RÉCURRENTS (jour de semaine + heures) ==========
+            recurringSlots = [];
             if (slotsText) {
                 try {
                     const jsonStrings = slotsText.split(';;').filter(s => s.trim());
-                    jsonStrings.forEach(jsonStr => {
+                    jsonStrings.forEach((jsonStr) => {
                         try {
                             const slot = JSON.parse(jsonStr.trim());
-                            if (slot.date_begin && slot.date_end) {
-                                const begin = parseISOToDateAndTime(slot.date_begin);
-                                const end = parseISOToDateAndTime(slot.date_end);
-                                if (begin && end && begin.date === end.date) {
-                                    availableSlots.push({
-                                        date: begin.date,
-                                        start: begin.time,
-                                        end: end.time
-                                    });
-                                }
-                            }
+                            const hb = String(slot.hour_begin ?? '').trim();
+                            const he = String(slot.hour_end ?? '').trim();
+                            if (hb === '' || he === '') return;
+                            const start = `${hb.padStart(2, '0')}:${(String(slot.minute_begin ?? '0').trim() || '0').padStart(2, '0')}`;
+                            const end = `${he.padStart(2, '0')}:${(String(slot.minute_end ?? '0').trim() || '0').padStart(2, '0')}`;
+                            const jours = parseJours(slot);
+                            recurringSlots.push({ jours, start, end });
                         } catch (e) {
                             console.warn('Erreur parsing slot:', e, jsonStr);
                         }
@@ -313,7 +456,8 @@
             if (!prestation) return;
             document.getElementById('prestation-name').textContent = prestation.nom;
             const duree = `${prestation.duree_heure || 0}h${String(prestation.duree_min || 0).padStart(2, '0')}`;
-            document.getElementById('prestation-details').textContent = `${duree} • ${prestation.prix}`;
+            const prixStr = prestation.prix != null && prestation.prix !== '' ? (String(prestation.prix).endsWith('€') ? prestation.prix : prestation.prix + ' €') : '';
+            document.getElementById('prestation-details').textContent = prixStr ? `${duree} • ${prixStr}` : duree;
         }
 
         function updateProfessionalHeader() {
@@ -328,8 +472,8 @@
         }
 
         function removePrestation() {
-            if (confirm('Voulez-vous supprimer cette prestation ?')) {
-                window.history.back();
+            if (typeof bubble_fn_prestationSelected === 'function') {
+                bubble_fn_prestationSelected();
             }
         }
 
@@ -352,202 +496,331 @@
             return `${DAYS_FR[date.getDay()]} ${date.getDate()}/${String(date.getMonth() + 1).padStart(2, '0')}`;
         }
 
+        /** Affiche la date et l'heure sélectionnées (ex. "Mercredi 25/02 à 13h30") */
+        function formatSelectedDateTime() {
+            if (!selectedDate || selectedTime == null) return '';
+            const [y, m, d] = selectedDate.split('-').map(Number);
+            const date = new Date(y, m - 1, d);
+            const dayLabel = DAYS_FR[date.getDay()];
+            const dateStr = `${date.getDate()}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+            const h = Math.floor(selectedTime);
+            const min = Math.round((selectedTime % 1) * 60);
+            const timeStr = min === 0 ? `${h}h00` : `${h}h${String(min).padStart(2, '0')}`;
+            return `${dayLabel} ${dateStr} à ${timeStr}`;
+        }
+
+        function goBackToSelectTime() {
+            step = 'select';
+            document.getElementById('step-select-block').classList.remove('hidden');
+            document.getElementById('step-recap-block').classList.add('hidden');
+            document.getElementById('step-form-block').classList.add('hidden');
+            render();
+        }
+
+        function showFormStep() {
+            step = 'form';
+            document.getElementById('step-select-block').classList.add('hidden');
+            document.getElementById('step-recap-block').classList.remove('hidden');
+            document.getElementById('recap-date-time').textContent = formatSelectedDateTime();
+            document.getElementById('step-form-block').classList.remove('hidden');
+        }
+
+        /** Formate la date/heure sélectionnée pour Bubble (ISO-like : YYYY-MM-DDTHH:mm:00) */
+        function getDataSelected() {
+            if (!selectedDate || selectedTime == null) return '';
+            const h = Math.floor(selectedTime);
+            const min = Math.round((selectedTime % 1) * 60);
+            return `${selectedDate}T${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`;
+        }
+
+        /** Appelle une fonction Bubble. Avec "Multiple Outputs", Toolbox attend UN objet { output1, output2, ... }. */
+        function callBubbleFn(name, valueOrObject) {
+            const fn = window[name] || (window.parent && window.parent[name]);
+            if (fn == null) return false;
+            try {
+                if (typeof fn.run === 'function') {
+                    fn.run(valueOrObject);
+                    return true;
+                }
+                if (typeof fn === 'function') {
+                    fn(valueOrObject);
+                    return true;
+                }
+            } catch (err) {
+                console.error('callBubbleFn(' + name + '):', err);
+                throw err;
+            }
+            return false;
+        }
+
+        function submitBooking(e) {
+            e.preventDefault();
+            const form = e.target;
+            const prenom = form.prenom.value.trim();
+            const nom = form.nom.value.trim();
+            const mail = form.tel.value.trim();   // tel = numéro (mail/contact)
+            const email = form.email.value.trim();
+            const data = {
+                prenom,
+                nom,
+                email,
+                tel: mail,
+                consent: form.consent.checked,
+                date: selectedDate,
+                time: selectedTime,
+                prestation_id: prestation && prestation.id ? prestation.id : null
+            };
+            console.log('Réservation:', data);
+
+            const prestationId = (prestation && prestation.id) ? String(prestation.id) : '';
+            const dataSelected = getDataSelected();
+
+            try {
+                if (callBubbleFn('bubble_fn_saveClient', { output1: prenom, output2: nom, output3: mail, output4: email })) {
+                    console.log('bubble_fn_saveClient appelée avec', { output1: prenom, output2: nom, output3: mail, output4: email });
+                } else {
+                    console.warn('bubble_fn_saveClient non disponible (embed Bubble ou nom de fonction incorrect)');
+                }
+                if (callBubbleFn('bubble_fn_saveBooking', { output1: prestationId, output2: dataSelected })) {
+                    console.log('bubble_fn_saveBooking appelée avec', { output1: prestationId, output2: dataSelected });
+                } else {
+                    console.warn('bubble_fn_saveBooking non disponible');
+                }
+            } catch (err) {
+                console.warn('Appel Bubble saveClient/saveBooking:', err);
+            }
+
+            showPopup();
+        }
+
+        let popupTimer = null;
+        let popupDismissed = false;
+
+        function showPopup() {
+            popupDismissed = false;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.getElementById('popup-confirmation').classList.add('visible');
+            popupTimer = setTimeout(dismissPopup, 5000);
+        }
+
+        function closePopup(e) {
+            if (e && e.target !== e.currentTarget) return;
+            dismissPopup();
+        }
+
+        function dismissPopup() {
+            if (popupDismissed) return;
+            popupDismissed = true;
+            if (popupTimer) { clearTimeout(popupTimer); popupTimer = null; }
+            document.getElementById('popup-confirmation').classList.remove('visible');
+            callBubbleFn('bubble_fn_prestationSelected');
+        }
+
+        // Stocke les dates affichées pour la navigation
+        let visibleDates = [];
+
         function navigateWeek(direction) {
-            const newDate = new Date(currentWeekStart);
-            newDate.setDate(newDate.getDate() + (direction * 7));
-            
-            // Vérifier qu'on ne dépasse pas 2 mois
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const maxDate = new Date(today);
-            maxDate.setDate(maxDate.getDate() + (maxWeeksAhead * 7));
-            
-            // Vérifier que la nouvelle semaine de début est dans les limites
-            if (newDate >= today && newDate <= maxDate) {
-                // Vérifier aussi que la fin de semaine ne dépasse pas
-                const weekEnd = new Date(newDate);
-                weekEnd.setDate(weekEnd.getDate() + 6);
-                if (weekEnd <= maxDate) {
-                    currentWeekStart = newDate;
+
+            if (direction === 1 && visibleDates.length > 0) {
+                // Avancer : démarrer le scan au lendemain de la dernière date affichée
+                const lastShown = new Date(visibleDates[visibleDates.length - 1]);
+                lastShown.setDate(lastShown.getDate() + 1);
+                const maxDate = new Date(today);
+                maxDate.setDate(maxDate.getDate() + (maxWeeksAhead * 7));
+                if (lastShown <= maxDate) {
+                    currentWeekStart = lastShown;
+                    render();
+                }
+            } else if (direction === -1 && visibleDates.length > 0) {
+                // Reculer : chercher les 7 dates disponibles AVANT la première affichée
+                const firstShown = new Date(visibleDates[0]);
+                if (firstShown <= today) return; // déjà au début
+                // Scanner en arrière pour trouver 7 dates dispo avant firstShown
+                const found = [];
+                for (let i = 1; i <= maxWeeksAhead * 7 && found.length < 7; i++) {
+                    const d = new Date(firstShown);
+                    d.setDate(d.getDate() - i);
+                    if (d < today) break;
+                    const dateStr = formatDate(d);
+                    const hours = getAvailableHoursForDate(dateStr);
+                    if (hours.length > 0) found.unshift(d);
+                }
+                if (found.length > 0) {
+                    currentWeekStart = new Date(found[0]);
                     render();
                 }
             }
         }
 
-        function getAvailableHoursForDate(dateStr) {
-            // Trouver les slots disponibles pour cette date
-            const slot = availableSlots.find(s => s.date === dateStr);
-            if (!slot) return [];
+        /** Pour une date YYYY-MM-DD, retourne le jour de la semaine (0=Dim, 1=Lun, … 6=Sam). */
+        function getDayOfWeekFromDateStr(dateStr) {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            return new Date(y, m - 1, d).getDay();
+        }
 
-            // Convertir les heures de début et fin en nombres (décimales)
-            const [startHour, startMin] = slot.start.split(':').map(Number);
-            const [endHour, endMin] = slot.end.split(':').map(Number);
-            const slotStart = startHour + startMin / 60;
-            const slotEnd = endHour + endMin / 60;
-
-            // Trouver les réservations pour cette date
-            const dateReservations = reservations.filter(r => r.date === dateStr);
-            
-            // Durée de la prestation en heures décimales
-            const prestationDuration = (prestation.duree_heure || 1) + (prestation.duree_min || 0) / 60;
-            
-            // Créer un tableau des plages occupées
-            const occupiedRanges = dateReservations.map(res => {
-                const [resStartHour, resStartMin] = res.start.split(':').map(Number);
-                const [resEndHour, resEndMin] = res.end.split(':').map(Number);
-                return {
-                    start: resStartHour + resStartMin / 60,
-                    end: resEndHour + resEndMin / 60
-                };
-            });
-
-            // Générer les heures disponibles
-            const availableHours = [];
-            
-            // Si le slot commence à une demi-heure (ex: 08h30), vérifier cette heure d'abord
+        /** Génère les créneaux de début possibles (en décimales) pour une plage [slotStart, slotEnd], puis retire ceux qui chevauchent un booking. */
+        function getStartsInRange(slotStart, slotEnd, prestationDuration, occupiedRanges) {
+            const out = [];
             if (slotStart % 1 === 0.5) {
-                const halfHourStart = Math.floor(slotStart) + 0.5;
-                if (halfHourStart + prestationDuration <= slotEnd) {
-                    let isAvailable = true;
-                    for (const range of occupiedRanges) {
-                        if (halfHourStart < range.end && (halfHourStart + prestationDuration) > range.start) {
-                            isAvailable = false;
-                            break;
-                        }
-                    }
-                    if (isAvailable) {
-                        availableHours.push(halfHourStart);
-                    }
+                const half = Math.floor(slotStart) + 0.5;
+                if (half + prestationDuration <= slotEnd) {
+                    const ok = occupiedRanges.every(r => !(half < r.end && (half + prestationDuration) > r.start));
+                    if (ok) out.push(half);
                 }
             }
-            
-            // Ensuite, parcourir toutes les heures entières possibles
-            const startHourInt = Math.ceil(slotStart);
-            for (let h = startHourInt; h <= Math.floor(slotEnd - prestationDuration); h++) {
-                // Vérifier que cette heure n'est pas dans une réservation
-                let isAvailable = true;
-                
-                // Vérifier que la plage [h, h + prestationDuration] ne chevauche aucune réservation
-                for (const range of occupiedRanges) {
-                    // Si la réservation chevauche notre créneau (même partiellement), on ne peut pas réserver
-                    // Chevauchement si: notre début < fin réservation ET notre fin > début réservation
-                    if (h < range.end && (h + prestationDuration) > range.start) {
-                        isAvailable = false;
-                        break;
-                    }
-                }
-                
-                if (isAvailable) {
-                    availableHours.push(h);
-                }
+            const startH = Math.ceil(slotStart);
+            for (let h = startH; h <= Math.floor(slotEnd - prestationDuration); h++) {
+                const ok = occupiedRanges.every(r => !(h < r.end && (h + prestationDuration) > r.start));
+                if (ok) out.push(h);
             }
-            
-            // Trier les heures pour un affichage cohérent
-            availableHours.sort((a, b) => a - b);
+            return out;
+        }
 
-            return availableHours;
+        function getAvailableHoursForDate(dateStr) {
+            const dayOfWeek = getDayOfWeekFromDateStr(dateStr);
+            const rangesForDay = recurringSlots
+                .filter(s => s.jours.includes(dayOfWeek))
+                .map(s => {
+                    const [sh, sm] = s.start.split(':').map(Number);
+                    const [eh, em] = s.end.split(':').map(Number);
+                    return { start: sh + sm / 60, end: eh + em / 60 };
+                });
+            if (rangesForDay.length === 0) return [];
+
+            const dateReservations = reservations.filter(r => r.date === dateStr);
+            const occupiedRanges = dateReservations.map(res => {
+                const [a, b] = res.start.split(':').map(Number);
+                const [c, d] = res.end.split(':').map(Number);
+                return { start: a + b / 60, end: c + d / 60 };
+            });
+            const prestationDuration = (prestation.duree_heure || 1) + (prestation.duree_min || 0) / 60;
+
+            const allStarts = new Set();
+            rangesForDay.forEach(range => {
+                getStartsInRange(range.start, range.end, prestationDuration, occupiedRanges).forEach(h => allStarts.add(h));
+            });
+            let hours = Array.from(allStarts).sort((a, b) => a - b);
+
+            // Pour aujourd'hui : ne proposer que les créneaux à au moins 1h de l'heure actuelle (sauf si hors slot)
+            const todayStr = formatDate(new Date());
+            if (dateStr === todayStr) {
+                const now = new Date();
+                const minStart = now.getHours() + now.getMinutes() / 60 + 1;
+                hours = hours.filter(h => h >= minStart);
+            }
+            return hours;
         }
 
         function render() {
-            // Mettre à jour le titre de la semaine
-            const weekEnd = new Date(currentWeekStart);
-            weekEnd.setDate(weekEnd.getDate() + 6);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            
-            // Vérifier si on peut naviguer
             const maxDate = new Date(today);
             maxDate.setDate(maxDate.getDate() + (maxWeeksAhead * 7));
-            
-            const canGoPrev = currentWeekStart > today;
-            const canGoNext = weekEnd < maxDate;
-            
-            const prevBtn = document.getElementById('prev-week');
-            const nextBtn = document.getElementById('next-week');
-            
-            if (!canGoPrev) {
-                prevBtn.disabled = true;
-                prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                prevBtn.classList.remove('hover:text-gray-600', 'hover:bg-gray-100');
-            } else {
-                prevBtn.disabled = false;
-                prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                prevBtn.classList.add('hover:text-gray-600', 'hover:bg-gray-100');
-            }
-            
-            if (!canGoNext) {
-                nextBtn.disabled = true;
-                nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                nextBtn.classList.remove('hover:text-gray-600', 'hover:bg-gray-100');
-            } else {
-                nextBtn.disabled = false;
-                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                nextBtn.classList.add('hover:text-gray-600', 'hover:bg-gray-100');
-            }
-            
-            document.getElementById('week-range').textContent = 
-                `${formatDateDisplay(currentWeekStart)} - ${formatDateDisplay(weekEnd)}`;
 
-            // Générer les 7 dates
+            // Trouver les 7 prochaines dates avec des créneaux disponibles
             const container = document.getElementById('dates-container');
             container.innerHTML = '';
+            container.className = 'grid gap-3 sm:gap-4 grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7';
 
-            for (let i = 0; i < 7; i++) {
-                const date = new Date(currentWeekStart);
+            const maxScan = maxWeeksAhead * 7;
+            const daysWithSlots = [];
+            const scanStart = new Date(currentWeekStart);
+            for (let i = 0; i < maxScan && daysWithSlots.length < 7; i++) {
+                const date = new Date(scanStart);
                 date.setDate(date.getDate() + i);
+                if (date < today) continue;
                 const dateStr = formatDate(date);
-                const isToday = formatDate(today) === dateStr;
-                const isPast = date < today;
-                
                 const availableHours = getAvailableHoursForDate(dateStr);
-                
+                if (availableHours.length === 0) continue;
+                daysWithSlots.push({ date: new Date(date), dateStr, availableHours });
+            }
+
+            if (daysWithSlots.length === 0) {
+                container.className = 'flex items-center justify-center py-8';
+                container.innerHTML = '<p class="text-sm text-gray-400">Aucun créneau disponible</p>';
+                return;
+            }
+
+            // Mettre à jour le range affiché : première et dernière date trouvée
+            const firstDate = daysWithSlots[0].date;
+            const lastDate = daysWithSlots[daysWithSlots.length - 1].date;
+            document.getElementById('week-range').textContent =
+                `${formatDateDisplay(firstDate)} - ${formatDateDisplay(lastDate)}`;
+
+            // Responsive : masquer les colonnes supplémentaires sur petits écrans
+            // mobile: 3 visibles, sm: 4, md: 5, lg: 7
+            const responsiveClasses = [
+                '',                          // 1
+                '',                          // 2
+                '',                          // 3
+                'hidden sm:flex',            // 4
+                'hidden md:flex',            // 5
+                'hidden lg:flex',            // 6
+                'hidden lg:flex',            // 7
+            ];
+
+            const todayStr = formatDate(today);
+            daysWithSlots.forEach(({ date, dateStr, availableHours }, idx) => {
+                const isToday = todayStr === dateStr;
+
                 const dayDiv = document.createElement('div');
-                dayDiv.className = 'flex flex-col';
-                
-                // En-tête de date
+                const hideClass = responsiveClasses[idx] || '';
+                dayDiv.className = `flex flex-col ${hideClass}`;
+
                 const dateHeader = document.createElement('div');
                 dateHeader.className = `text-center mb-3 font-medium text-sm ${isToday ? 'text-gold-600' : 'text-gray-700'}`;
                 dateHeader.textContent = formatDateDisplay(date);
                 dayDiv.appendChild(dateHeader);
-                
-                // Créneaux horaires
+
                 const slotsDiv = document.createElement('div');
                 slotsDiv.className = 'flex flex-col gap-2';
-                
-                if (isPast || availableHours.length === 0) {
-                    slotsDiv.innerHTML = '<p class="text-xs text-gray-400 text-center">Aucun créneau disponible</p>';
-                } else {
-                    availableHours.forEach(hour => {
-                        const slotBtn = document.createElement('button');
-                        const hourInt = Math.floor(hour);
-                        const minutes = Math.round((hour % 1) * 60);
-                        const timeStr = minutes === 0 
-                            ? `${String(hourInt).padStart(2, '0')}h00`
-                            : `${String(hourInt).padStart(2, '0')}h${String(minutes).padStart(2, '0')}`;
-                        slotBtn.textContent = timeStr;
-                        slotBtn.className = 'time-slot px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm font-medium text-gray-700';
-                        slotBtn.onclick = () => selectTime(dateStr, hour, slotBtn);
-                        slotsDiv.appendChild(slotBtn);
-                    });
-                }
-                
+
+                availableHours.forEach(hour => {
+                    const slotBtn = document.createElement('button');
+                    const hourInt = Math.floor(hour);
+                    const minutes = Math.round((hour % 1) * 60);
+                    const timeStr = minutes === 0
+                        ? `${String(hourInt).padStart(2, '0')}h00`
+                        : `${String(hourInt).padStart(2, '0')}h${String(minutes).padStart(2, '0')}`;
+                    slotBtn.textContent = timeStr;
+                    slotBtn.className = 'time-slot px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm font-medium text-gray-700';
+                    slotBtn.onclick = () => selectTime(dateStr, hour, slotBtn);
+                    slotsDiv.appendChild(slotBtn);
+                });
+
                 dayDiv.appendChild(slotsDiv);
                 container.appendChild(dayDiv);
+            });
+
+            // Stocker les dates affichées pour la navigation
+            visibleDates = daysWithSlots.map(d => d.date);
+
+            // Mettre à jour les boutons prev/next
+            const canGoPrev = visibleDates.length > 0 && visibleDates[0] > today;
+            const canGoNext = visibleDates.length > 0 && visibleDates[visibleDates.length - 1] < maxDate;
+            const prevBtn = document.getElementById('prev-week');
+            const nextBtn = document.getElementById('next-week');
+            toggleNavBtn(prevBtn, canGoPrev);
+            toggleNavBtn(nextBtn, canGoNext);
+        }
+
+        function toggleNavBtn(btn, enabled) {
+            btn.disabled = !enabled;
+            if (enabled) {
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.classList.add('hover:text-gray-600', 'hover:bg-gray-100');
+            } else {
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                btn.classList.remove('hover:text-gray-600', 'hover:bg-gray-100');
             }
         }
 
-        function selectTime(dateStr, hour, buttonElement) {
+        function selectTime(dateStr, hour) {
             selectedDate = dateStr;
             selectedTime = hour;
-            
-            // Mettre à jour l'UI
-            document.querySelectorAll('.time-slot').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            buttonElement.classList.add('selected');
-            
-            // TODO: Continuer vers l'étape suivante (formulaire client, etc.)
-            console.log('Sélection:', dateStr, hour);
+            showFormStep();
         }
 
         // Initialiser au chargement
