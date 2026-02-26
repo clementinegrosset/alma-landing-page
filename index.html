@@ -300,6 +300,40 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
 
+    <!-- ========== NAV ========== -->
+    <nav id="main-nav" class="z-50 flex w-full px-6 py-4 sm:px-8 sm:py-6 fixed top-0 left-0 items-center justify-between transition-all duration-300" style="animation: fadeIn 1s ease-out forwards;">
+        <a href="#" class="font-poppins text-lg font-semibold text-gold-500">balma</a>
+        <div class="hidden sm:flex w-fit gap-6 items-center">
+            <a href="#fonctionnalites" class="text-sm text-zinc-400 hover:text-zinc-200 font-geist transition-colors">Fonctionnalités</a>
+            <a href="#tarifs" class="text-sm text-zinc-400 hover:text-zinc-200 font-geist transition-colors">Tarifs</a>
+            <a href="#faq" class="text-sm text-zinc-400 hover:text-zinc-200 font-geist transition-colors">FAQ</a>
+            <a href="/es" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-zinc-800 bg-zinc-900/50 hover:border-zinc-600 transition-all" aria-label="Versión en español">
+                <iconify-icon icon="circle-flags:es" width="16"></iconify-icon>
+                <span class="text-xs text-zinc-400 font-geist">ES</span>
+            </a>
+        </div>
+        <button id="mobile-menu-btn" class="sm:hidden text-zinc-400 hover:text-zinc-200 transition-colors p-1" aria-label="Ouvrir le menu">
+            <iconify-icon icon="lucide:menu" width="24"></iconify-icon>
+        </button>
+    </nav>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="fixed inset-0 z-50 hidden">
+        <div onclick="closeMobileMenu()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+        <div class="absolute top-0 right-0 w-64 h-full bg-zinc-900 border-l border-zinc-800 p-8 flex flex-col gap-6">
+            <button onclick="closeMobileMenu()" class="self-end text-zinc-400 hover:text-zinc-200 transition-colors p-1" aria-label="Fermer le menu">
+                <iconify-icon icon="lucide:x" width="24"></iconify-icon>
+            </button>
+            <a href="#fonctionnalites" onclick="closeMobileMenu()" class="text-base text-zinc-300 hover:text-zinc-100 font-geist transition-colors">Fonctionnalités</a>
+            <a href="#tarifs" onclick="closeMobileMenu()" class="text-base text-zinc-300 hover:text-zinc-100 font-geist transition-colors">Tarifs</a>
+            <a href="#faq" onclick="closeMobileMenu()" class="text-base text-zinc-300 hover:text-zinc-100 font-geist transition-colors">FAQ</a>
+            <a href="/es" onclick="closeMobileMenu()" class="flex items-center gap-2 text-base text-zinc-300 hover:text-zinc-100 font-geist transition-colors">
+                <iconify-icon icon="circle-flags:es" width="18"></iconify-icon>
+                Español
+            </a>
+        </div>
+    </div>
+
     <!-- ========== HERO ========== -->
     <header class="relative min-h-screen flex flex-col z-20">
         <div class="absolute inset-0 z-0 overflow-hidden">
@@ -312,39 +346,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="absolute inset-0 z-10 pointer-events-none">
             <div class="fog-layer-1 absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 blur-3xl"></div>
             <div class="fog-layer-2 absolute inset-0 w-[150%] h-[150%] -top-1/4 -left-1/4 blur-3xl"></div>
-        </div>
-
-        <nav id="main-nav" class="z-30 flex w-full px-6 py-4 sm:px-8 sm:py-6 fixed top-0 left-0 items-center justify-between transition-all duration-300" style="animation: fadeIn 1s ease-out forwards;">
-            <a href="#" class="font-poppins text-lg font-semibold text-gold-500">balma</a>
-            <div class="hidden sm:flex w-fit gap-6 items-center">
-                <a href="#fonctionnalites" class="text-sm text-zinc-400 hover:text-zinc-200 font-geist transition-colors">Fonctionnalités</a>
-                <a href="#tarifs" class="text-sm text-zinc-400 hover:text-zinc-200 font-geist transition-colors">Tarifs</a>
-                <a href="#faq" class="text-sm text-zinc-400 hover:text-zinc-200 font-geist transition-colors">FAQ</a>
-                <a href="/es" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-zinc-800 bg-zinc-900/50 hover:border-zinc-600 transition-all" aria-label="Versión en español">
-                    <iconify-icon icon="circle-flags:es" width="16"></iconify-icon>
-                    <span class="text-xs text-zinc-400 font-geist">ES</span>
-                </a>
-            </div>
-            <button id="mobile-menu-btn" class="sm:hidden text-zinc-400 hover:text-zinc-200 transition-colors p-1" aria-label="Ouvrir le menu">
-                <iconify-icon icon="lucide:menu" width="24"></iconify-icon>
-            </button>
-        </nav>
-
-        <!-- Mobile menu -->
-        <div id="mobile-menu" class="fixed inset-0 z-40 hidden">
-            <div onclick="closeMobileMenu()" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-            <div class="absolute top-0 right-0 w-64 h-full bg-zinc-900 border-l border-zinc-800 p-8 flex flex-col gap-6">
-                <button onclick="closeMobileMenu()" class="self-end text-zinc-400 hover:text-zinc-200 transition-colors p-1" aria-label="Fermer le menu">
-                    <iconify-icon icon="lucide:x" width="24"></iconify-icon>
-                </button>
-                <a href="#fonctionnalites" onclick="closeMobileMenu()" class="text-base text-zinc-300 hover:text-zinc-100 font-geist transition-colors">Fonctionnalités</a>
-                <a href="#tarifs" onclick="closeMobileMenu()" class="text-base text-zinc-300 hover:text-zinc-100 font-geist transition-colors">Tarifs</a>
-                <a href="#faq" onclick="closeMobileMenu()" class="text-base text-zinc-300 hover:text-zinc-100 font-geist transition-colors">FAQ</a>
-                <a href="/es" onclick="closeMobileMenu()" class="flex items-center gap-2 text-base text-zinc-300 hover:text-zinc-100 font-geist transition-colors">
-                    <iconify-icon icon="circle-flags:es" width="18"></iconify-icon>
-                    Español
-                </a>
-            </div>
         </div>
 
         <main class="flex-1 flex flex-col z-20 text-center px-4 relative items-center justify-center pt-24 pb-20">
