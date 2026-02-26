@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balma - Créez votre site en un instant</title>
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>✨</text></svg>">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { gold: { 400: '#F4D03F', 500: '#C9A227', 600: '#B7950B' } } } } };
+    </script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+
+    <style>
+        .font-geist { font-family: 'Inter', sans-serif; }
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        .pulse-ring::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            border: 2px solid #F4D03F;
+            animation: pulse-ring 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        /* Overlay : entrée et sortie en fondu */
+        .creation-overlay {
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0.2s ease, opacity 0.2s ease;
+        }
+        .creation-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .creation-overlay.exiting {
+            opacity: 0;
+            transition: opacity 0.45s ease-out;
+        }
+        .creation-overlay-inner {
+            transition: transform 0.45s ease-out, opacity 0.45s ease-out;
+        }
+        .creation-overlay.exiting .creation-overlay-inner {
+            transform: scale(0.97);
+            opacity: 0;
+        }
+
+        .step-item {
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.25s ease, transform 0.25s ease, color 0.2s ease;
+        }
+        .step-item.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .step-item.done iconify-icon {
+            color: rgb(74, 222, 128) !important;
+        }
+
+        .progress-fill-3s {
+            width: 0%;
+            transition: width 3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .progress-fill-3s.running {
+            width: 100%;
+        }
+
+        .text-gold-shine {
+            background: linear-gradient(90deg, #C9A227 0%, #F4D03F 50%, #C9A227 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn-create {
+            transition: transform 0.15s ease, box-shadow 0.2s ease;
+        }
+        .btn-create:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px -5px rgba(201, 162, 39, 0.35), 0 8px 10px -6px rgba(201, 162, 39, 0.2);
+        }
+        .btn-create:active {
+            transform: translateY(0);
+        }
+
+        .card-light {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+        .input-light {
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .input-light:focus {
+            box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.2);
+        }
+        /* Wrapper unique pour aligner CTA et overlay (compat Bubble HTML element) */
+        .creation-wrapper {
+            position: relative;
+            min-height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .creation-overlay.creation-overlay-absolute {
+            position: absolute;
+            inset: 0;
+        }
+    </style>
+</head>
+<body class="bg-transparent text-gray-900 font-sans antialiased min-h-screen w-full overflow-x-hidden">
+
+    <div class="creation-wrapper min-h-screen">
+    <!-- Contenu principal : CTA création -->
+    <main class="z-10 w-full max-w-[480px] px-6 text-center" id="main-cta">
+        <div class="rounded-2xl p-8 md:p-10">
+            <div class="relative w-16 h-16 mx-auto mb-6 flex items-center justify-center">
+                <div class="w-16 h-16 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center">
+                    <iconify-icon icon="lucide:sparkles" width="28" class="text-gold-500"></iconify-icon>
+                </div>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-poppins font-semibold mb-2 text-gray-900 tracking-tight">
+                Créez votre site en un instant
+            </h1>
+            <p class="text-gray-500 font-geist text-sm md:text-base mb-6 max-w-[416px] mx-auto leading-relaxed">
+                Un clic suffit. Une vitrine professionnelle prête à personnaliser.
+            </p>
+            <label for="space-name" class="sr-only">Nom de votre espace</label>
+            <div class="input-url-group flex items-stretch w-full max-w-[416px] mx-auto rounded-xl border border-gray-200 overflow-hidden bg-white focus-within:border-gold-500 focus-within:ring-2 focus-within:ring-gold-500/20">
+                <span class="inline-flex items-center px-2.5 py-2 bg-gray-50 border-r border-gray-200 text-gray-500 font-geist text-[14px] whitespace-nowrap select-none">https://balma.co/site/</span>
+                <input type="text" id="space-name" name="space-name" placeholder="mon-espace" maxlength="120"
+                       class="input-light flex-1 min-w-0 px-3 py-2.5 bg-white text-gray-900 font-geist text-[15px] placeholder-gray-400 focus:outline-none focus:ring-0 border-0">
+                <span class="inline-flex items-center px-3 py-2 bg-white flex-shrink-0" id="space-name-status" aria-live="polite"></span>
+            </div>
+            <p class="text-red-500 font-geist text-sm mt-1.5 min-h-[1.25rem] max-w-[416px] mx-auto text-left" id="space-name-error"></p>
+            <button type="button" id="btn-create-site" class="btn-create inline-flex items-center justify-center gap-2 w-full max-w-[416px] mx-auto mt-5 px-6 py-3.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-gray-900 font-space font-semibold text-base">
+                <iconify-icon icon="lucide:wand-2" width="20"></iconify-icon>
+                Créer mon site
+            </button>
+        </div>
+    </main>
+
+    <!-- Overlay : absolute pour être aligné sur le wrapper (même zone que le CTA dans Bubble) -->
+    <div class="creation-overlay creation-overlay-absolute z-50 flex flex-col items-center justify-center bg-transparent" id="creation-overlay" aria-hidden="true">
+        <div class="creation-overlay-inner w-full max-w-[416px] rounded-2xl p-8 text-center mx-4">
+            <!-- Icon / Loader -->
+            <div class="relative w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+                <div class="absolute inset-0 pulse-ring"></div>
+                <div class="w-14 h-14 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center relative z-10">
+                    <iconify-icon icon="lucide:sparkles" width="26" class="text-gold-500"></iconify-icon>
+                </div>
+            </div>
+            <h2 class="text-xl font-poppins font-semibold mb-0.5 text-gray-900 tracking-tight">
+                Création en cours
+            </h2>
+            <p class="text-gray-500 font-geist text-sm mb-6">
+                Votre site prend forme...
+            </p>
+
+            <!-- Steps -->
+            <div class="space-y-2.5 mb-6 flex flex-col items-center">
+                <div class="step-item flex items-center justify-center gap-3" id="anim-step-1">
+                    <iconify-icon icon="lucide:circle" class="text-gray-300 flex-shrink-0" width="16"></iconify-icon>
+                    <span class="text-gray-600 font-geist text-sm">Préparation du modèle</span>
+                </div>
+                <div class="step-item flex items-center justify-center gap-3" id="anim-step-2">
+                    <iconify-icon icon="lucide:circle" class="text-gray-300 flex-shrink-0" width="16"></iconify-icon>
+                    <span class="text-gray-600 font-geist text-sm">Génération des pages</span>
+                </div>
+                <div class="step-item flex items-center justify-center gap-3" id="anim-step-3">
+                    <iconify-icon icon="lucide:circle" class="text-gray-300 flex-shrink-0" width="16"></iconify-icon>
+                    <span class="text-gray-600 font-geist text-sm">Application du design</span>
+                </div>
+                <div class="step-item flex items-center justify-center gap-3" id="anim-step-4">
+                    <iconify-icon icon="lucide:circle" class="text-gray-300 flex-shrink-0" width="16"></iconify-icon>
+                    <span class="text-gray-600 font-geist text-sm">Finalisation</span>
+                </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="w-full bg-gray-100 rounded-full h-2 mb-1.5 overflow-hidden">
+                <div class="progress-fill-3s bg-gold-500 h-2 rounded-full" id="progress-fill"></div>
+            </div>
+            <p class="text-xs text-gray-500 font-geist" id="progress-label">0%</p>
+        </div>
+    </div>
+
+    </div><!-- .creation-wrapper -->
+
+    <!-- Liste des noms déjà pris : coller ici une variable Bubble (texte, noms séparés par ;) -->
+    <div id="taken-names-raw" style="display:none">VAR_TAKEN_NAMES</div>
+
+    <script>
+        (function () {
+            function getTakenNames() {
+                var el = document.getElementById('taken-names-raw');
+                var raw = el ? (el.textContent || '').trim() : '';
+                if (!raw || raw.indexOf('VAR_') === 0) return [];
+                return raw.split(';').map(function (s) { return s.trim().toLowerCase(); }).filter(Boolean);
+            }
+
+            var overlay = document.getElementById('creation-overlay');
+            var btn = document.getElementById('btn-create-site');
+            var spaceNameInput = document.getElementById('space-name');
+            var statusEl = document.getElementById('space-name-status');
+            var errorEl = document.getElementById('space-name-error');
+
+            function updateSpaceNameValidation() {
+                var value = (spaceNameInput.value || '').trim().toLowerCase();
+                var taken = getTakenNames();
+                if (statusEl) statusEl.textContent = '';
+                if (statusEl) statusEl.innerHTML = '';
+                if (errorEl) errorEl.textContent = '';
+                if (!value) {
+                    if (btn) btn.disabled = false;
+                    return;
+                }
+                var isTaken = taken.indexOf(value) !== -1;
+                if (isTaken) {
+                    if (statusEl) statusEl.innerHTML = '<iconify-icon icon="lucide:circle-x" class="text-red-500 flex-shrink-0" width="20"></iconify-icon>';
+                    if (errorEl) errorEl.textContent = 'Ce nom est déjà pris.';
+                    if (btn) btn.disabled = true;
+                } else {
+                    if (statusEl) statusEl.innerHTML = '<iconify-icon icon="lucide:circle-check" class="text-green-500 flex-shrink-0" width="20"></iconify-icon>';
+                    if (btn) btn.disabled = false;
+                }
+            }
+
+            if (spaceNameInput) {
+                spaceNameInput.addEventListener('input', updateSpaceNameValidation);
+                spaceNameInput.addEventListener('blur', updateSpaceNameValidation);
+            }
+            var progressFill = document.getElementById('progress-fill');
+            var progressLabel = document.getElementById('progress-label');
+            var steps = [
+                { id: 'anim-step-1', time: 1150 },
+                { id: 'anim-step-2', time: 1550 },
+                { id: 'anim-step-3', time: 1950 },
+                { id: 'anim-step-4', time: 2350 }
+            ];
+
+            function setStepDone(stepId) {
+                var el = document.getElementById(stepId);
+                if (!el) return;
+                el.classList.add('active', 'done');
+                var icon = el.querySelector('iconify-icon');
+                if (icon) {
+                    icon.setAttribute('icon', 'lucide:check-circle');
+                }
+            }
+
+            function runCreationAnimation(spaceName) {
+                var mainCta = document.getElementById('main-cta');
+                if (mainCta) mainCta.style.display = 'none';
+                overlay.classList.add('active');
+                overlay.setAttribute('aria-hidden', 'false');
+                progressFill.classList.add('running');
+                progressLabel.textContent = '0%';
+
+                var start = 0;
+                var percentInterval = setInterval(function () {
+                    start += 5;
+                    if (start <= 100) progressLabel.textContent = start + '%';
+                }, 150);
+
+                steps.forEach(function (s) {
+                    setTimeout(function () { setStepDone(s.id); }, s.time);
+                });
+
+                setTimeout(function () {
+                    clearInterval(percentInterval);
+                    progressLabel.textContent = 'Prêt !';
+                    progressLabel.classList.add('text-gold-shine', 'font-semibold');
+                }, 2800);
+
+                setTimeout(function () {
+                    overlay.classList.add('exiting');
+                }, 3000);
+
+                setTimeout(function () {
+                    var spaceNameEl = document.getElementById('space-name');
+                    var spaceNameValue = spaceNameEl ? spaceNameEl.value : spaceName;
+                    var fn = (window.parent && typeof window.parent.bubble_fn_createWebsite === 'function')
+                        ? window.parent.bubble_fn_createWebsite
+                        : (typeof window.bubble_fn_createWebsite === 'function' ? window.bubble_fn_createWebsite : null);
+                    if (fn) fn(spaceNameValue);
+                }, 3500);
+            }
+
+            btn.addEventListener('click', function () {
+                var spaceNameInput = document.getElementById('space-name');
+                var spaceName = spaceNameInput ? spaceNameInput.value.trim() : '';
+                btn.disabled = true;
+                if (spaceNameInput) spaceNameInput.disabled = true;
+                runCreationAnimation(spaceName);
+            });
+        })();
+    </script>
+</body>
+</html>

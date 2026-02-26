@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balma - Mon profil</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        .font-geist { font-family: 'Inter', sans-serif; }
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+        /* Placeholders des dropdowns en gris 400 */
+        select option[value=""] { color: #9ca3af; }
+        select.placeholder-gray { color: #9ca3af; }
+        select.placeholder-gray:focus { color: #111827; }
+        /* Placeholders des inputs en gris 400 */
+        input::placeholder { color: #9ca3af; }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: { 400: '#F4D03F', 500: '#C9A227', 600: '#B7950B' }
+                    }
+                }
+            }
+        };
+    </script>
+
+    <!--
+    =======================================================================
+    VARIABLES BUBBLE (optionnel)
+    =======================================================================
+    PROFIL_RAW : JSON ou texte "prenom;;nom;;photo_url"
+    LOCAUX_RAW : tableau d'objets séparés par ;;  {"id":"...","nom":"...","adresse":"..."};;{...}
+    -->
+    <script>
+        var PROFIL_RAW = ""; // ex: "Marie;;Dupont;;https://..."
+        var LOCAUX_RAW = ""; // ex: {"id":"1","nom":"Salon centre","adresse":"12 rue de la Paix, Paris"};;{"id":"2","nom":"Cabinet","adresse":"5 av. des Lilas"}
+
+        var METIERS_OPTIONS = [
+            { value: "", label: "Sélectionner un métier" },
+            { value: "esthéticienne", label: "Esthéticienne" },
+            { value: "coiffeur", label: "Coiffeur / Coiffeuse" },
+            { value: "maquilleur", label: "Maquilleur / Maquilleuse" },
+            { value: "masseur", label: "Masseur / Masseuse" },
+            { value: "manucure", label: "Manucure / Nail artist" },
+            { value: "barbe", label: "Barbier" },
+            { value: "prothesiste_ongulaire", label: "Prothésiste ongulaire" },
+            { value: "autre", label: "Autre" }
+        ];
+
+        var DISTANCES_OPTIONS = [
+            { value: 5, label: "5 km" },
+            { value: 10, label: "10 km" },
+            { value: 15, label: "15 km" },
+            { value: 20, label: "20 km" },
+            { value: 30, label: "30 km" },
+            { value: 50, label: "50 km" }
+        ];
+
+        var STORAGE_KEY_PROFIL = "balma_profil";
+        var STORAGE_KEY_LOCAUX = "balma_locaux";
+
+        function parseProfil(raw) {
+            if (!raw || raw.trim() === "") return null;
+            var parts = raw.split(";;");
+            if (parts.length >= 2) {
+                return {
+                    prenom: parts[0].trim(),
+                    nom: parts[1].trim(),
+                    photo: (parts[2] || "").trim(),
+                    metier: (parts[3] || "").trim(),
+                    travailleADomicile: (parts[4] || "").toLowerCase() === "true",
+                    domicileVille: (parts[5] || "").trim(),
+                    domicileDistanceKm: parseInt(parts[6], 10) || 10
+                };
+            }
+            try {
+                var o = JSON.parse(raw);
+                return {
+                    prenom: o.prenom || o.Prenom || "",
+                    nom: o.nom || o.Nom || "",
+                    photo: o.photo || o.Photo || "",
+                    metier: o.metier || o.Metier || "",
+                    travailleADomicile: o.travailleADomicile === true || (o.travaille_a_domicile || "").toString().toLowerCase() === "true",
+                    domicileVille: o.domicileVille || o.domicile_ville || "",
+                    domicileDistanceKm: parseInt(o.domicileDistanceKm || o.domicile_distance_km || 10, 10) || 10
+                };
+            } catch (e) { return null; }
+        }
+
+        function parseLocaux(raw) {
+            if (!raw || raw.trim() === "") return [];
+            if (raw.trim().indexOf("[") === 0) {
+                try { return JSON.parse(raw); } catch (e) { return []; }
+            }
+            return raw.split(";;").map(function(s) {
+                try {
+                    var o = JSON.parse(s.trim());
+                    return { id: o.id || String(Date.now()), nom: o.nom || o.Nom || "", adresse: o.adresse || o.Adresse || "" };
+                } catch (e) { return null; }
+            }).filter(Boolean);
+        }
+
+        var PROFIL_DEFAULTS = {
+            prenom: "Prénom",
+            nom: "Nom",
+            photo: "",
+            metier: "",
+            travailleADomicile: false,
+            domicileVille: "",
+            domicileDistanceKm: 10
+        };
+
+        function loadProfil() {
+            var fromBubble = parseProfil(PROFIL_RAW);
+            if (fromBubble) return Object.assign({}, PROFIL_DEFAULTS, fromBubble);
+            try {
+                var s = localStorage.getItem(STORAGE_KEY_PROFIL);
+                if (s) return Object.assign({}, PROFIL_DEFAULTS, JSON.parse(s));
+            } catch (e) {}
+            return Object.assign({}, PROFIL_DEFAULTS);
+        }
+
+        function saveProfil(p) {
+            try { localStorage.setItem(STORAGE_KEY_PROFIL, JSON.stringify(p)); } catch (e) {}
+        }
+
+        function loadLocaux() {
+            var fromBubble = parseLocaux(LOCAUX_RAW);
+            if (fromBubble && fromBubble.length > 0) return fromBubble;
+            try {
+                var s = localStorage.getItem(STORAGE_KEY_LOCAUX);
+                if (s) return JSON.parse(s);
+            } catch (e) {}
+            return [
+                { id: "1", nom: "Salon", adresse: "12 rue de la Paix, 75001 Paris" }
+            ];
+        }
+
+        function saveLocaux(list) {
+            try { localStorage.setItem(STORAGE_KEY_LOCAUX, JSON.stringify(list)); } catch (e) {}
+        }
+
+        var profil = loadProfil();
+        var locaux = loadLocaux();
+
+        // Plan actuel : "gratuit" | "pro" | "business" (ou depuis Bubble PLAN_RAW)
+        var PLAN_RAW = ""; // ex: "pro" ou {"id":"pro","name":"Pro","price":"15","currency":"EUR","interval":"month"}
+        var PLANS = {
+            gratuit: { id: "gratuit", name: "Gratuit", price: 0, priceLabel: "0 €/mois" },
+            pro: { id: "pro", name: "Pro", price: 15, priceLabel: "15 €/mois" },
+            business: { id: "business", name: "Business", price: 29, priceLabel: "29 €/mois" }
+        };
+        function getCurrentPlan() {
+            var raw = (typeof PLAN_RAW !== "undefined" && PLAN_RAW !== null) ? String(PLAN_RAW).trim().toLowerCase() : "";
+            if (raw) {
+                try {
+                    var o = typeof raw === "string" && raw.indexOf("{") === 0 ? JSON.parse(raw) : null;
+                    if (o && o.id) return PLANS[o.id] || PLANS.gratuit;
+                } catch (e) {}
+                if (PLANS[raw]) return PLANS[raw];
+            }
+            try {
+                var s = localStorage.getItem("balma_plan");
+                if (s) { var p = JSON.parse(s); if (PLANS[p.id]) return PLANS[p.id]; }
+            } catch (e) {}
+            return PLANS.gratuit;
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-geist antialiased min-h-screen">
+
+    <main class="max-w-3xl mx-auto px-4 py-8 md:py-12">
+        <h1 class="font-space font-bold text-2xl md:text-3xl text-gray-900 mb-8">Mon profil</h1>
+
+        <!-- Carte Profil : photo à gauche, champs à droite, alignés en haut -->
+        <section class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 md:p-8 mb-6">
+            <div class="flex flex-col sm:flex-row items-start gap-6">
+                <div class="relative group shrink-0">
+                    <div id="photo-container" class="w-24 h-24 md:w-28 md:h-28 rounded-full border-2 border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center">
+                        <img id="photo-img" src="" alt="Photo" class="w-full h-full object-cover hidden">
+                        <span id="photo-initials" class="text-2xl md:text-3xl font-semibold text-gray-500 font-space">?</span>
+                    </div>
+                    <label class="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <iconify-icon icon="lucide:camera" class="text-white" width="28"></iconify-icon>
+                        <input type="file" id="photo-input" accept="image/*" class="hidden">
+                    </label>
+                </div>
+                <div class="flex-1 w-full space-y-4">
+                    <div>
+                        <label for="input-prenom" class="block text-sm font-medium text-gray-500 mb-1">Prénom</label>
+                        <input type="text" id="input-prenom" value="" placeholder="Votre prénom" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label for="input-nom" class="block text-sm font-medium text-gray-500 mb-1">Nom</label>
+                        <input type="text" id="input-nom" value="" placeholder="Votre nom" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label for="input-metier" class="block text-sm font-medium text-gray-500 mb-1">Métier</label>
+                        <select id="input-metier" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none transition-all bg-white appearance-none cursor-pointer">
+                            <!-- Rempli en JS -->
+                        </select>
+                    </div>
+                    <button type="button" id="btn-save-profil" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gold-500 hover:bg-gold-600 text-white font-medium text-sm rounded-lg shadow-sm transition-colors focus:ring-2 focus:ring-gold-400 focus:ring-offset-2">
+                        <iconify-icon icon="lucide:check" width="18"></iconify-icon>
+                        Enregistrer les modifications
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Plan / Abonnement -->
+        <section id="plan-section" class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 md:p-8 mb-6">
+            <h2 class="font-space font-semibold text-lg text-gray-900 mb-4">Mon abonnement</h2>
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="flex items-start gap-4">
+                    <div id="plan-icon" class="p-3 rounded-xl bg-gold-50 text-gold-600 shrink-0">
+                        <iconify-icon icon="lucide:sparkles" width="24"></iconify-icon>
+                    </div>
+                    <div>
+                        <p id="plan-name" class="font-space font-semibold text-gray-900 text-lg">—</p>
+                        <p id="plan-price" class="text-gray-500 text-sm mt-0.5">—</p>
+                    </div>
+                </div>
+                <div class="shrink-0">
+                    <a id="plan-upgrade-btn" href="#" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-500 hover:bg-gold-600 text-white font-medium text-sm rounded-lg shadow-sm transition-colors focus:ring-2 focus:ring-gold-400 focus:ring-offset-2">
+                        <iconify-icon icon="lucide:arrow-up-circle" width="18"></iconify-icon>
+                        <span id="plan-upgrade-label">Passer à un plan supérieur</span>
+                    </a>
+                    <p id="plan-max-label" class="hidden text-sm text-gray-500 mt-2">Vous avez le plan le plus complet.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Locaux -->
+        <section class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <h2 class="font-space font-semibold text-lg text-gray-900">Mes locaux</h2>
+                <button type="button" id="btn-add-local" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-medium text-sm rounded-lg shadow-sm transition-colors focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                    <iconify-icon icon="lucide:plus" width="18"></iconify-icon>
+                    Ajouter un local
+                </button>
+            </div>
+            <div id="locaux-list" class="divide-y divide-gray-100">
+                <!-- Rempli en JS -->
+            </div>
+            <div id="locaux-empty" class="px-6 py-10 text-center text-gray-500 text-sm hidden">
+                Aucun local pour le moment. Cliquez sur « Ajouter un local » pour commencer.
+            </div>
+            <div class="px-6 py-4 border-t border-gray-100">
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" id="input-domicile" class="w-4 h-4 rounded border-gray-300 text-gold-500 focus:ring-gold-400">
+                    <label for="input-domicile" class="text-sm font-medium text-gray-700 cursor-pointer">Je travaille à domicile (déplacements autour d'une ville)</label>
+                </div>
+                <div id="domicile-details" class="hidden space-y-4 mt-4 pl-7 border-l-2 border-gray-100">
+                    <div>
+                        <label for="input-domicile-ville" class="block text-sm font-medium text-gray-500 mb-1">Autour de quelle ville ?</label>
+                        <input type="text" id="input-domicile-ville" value="" placeholder="ex. Paris, Lyon, Bordeaux" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label for="input-domicile-distance" class="block text-sm font-medium text-gray-500 mb-1">Distance autour de la ville</label>
+                        <select id="input-domicile-distance" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none transition-all bg-white appearance-none cursor-pointer">
+                            <!-- Rempli en JS -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modal : ajouter / modifier un local -->
+        <div id="modal-local" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true">
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="fixed inset-0 bg-black/40 transition-opacity" id="modal-local-backdrop"></div>
+                <div class="relative bg-white rounded-2xl shadow-xl border border-gray-200 w-full max-w-md p-6">
+                    <h3 id="modal-local-title" class="font-space font-semibold text-lg text-gray-900 mb-4">Nouveau local</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="modal-local-nom" class="block text-sm font-medium text-gray-500 mb-1">Nom du local</label>
+                            <input type="text" id="modal-local-nom" placeholder="ex. Salon centre-ville" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none">
+                        </div>
+                        <div>
+                            <label for="modal-local-adresse" class="block text-sm font-medium text-gray-500 mb-1">Adresse</label>
+                            <input type="text" id="modal-local-adresse" placeholder="ex. 12 rue de la Paix, 75001 Paris" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none">
+                        </div>
+                    </div>
+                    <div class="mt-6 flex gap-3 justify-end">
+                        <button type="button" id="modal-local-cancel" class="px-4 py-2.5 text-gray-600 hover:text-gray-900 font-medium text-sm rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                            Annuler
+                        </button>
+                        <button type="button" id="modal-local-save" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gold-500 hover:bg-gold-600 text-white font-medium text-sm rounded-lg shadow-sm transition-colors focus:ring-2 focus:ring-gold-400 focus:ring-offset-2">
+                            <iconify-icon icon="lucide:check" width="16"></iconify-icon>
+                            Enregistrer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        (function() {
+            // ---------- Profil ----------
+            function updatePhotoDisplay() {
+                var photoUrl = profil.photo || "";
+                var prenom = (profil.prenom || "").trim();
+                var nom = (profil.nom || "").trim();
+                var initials = (prenom.charAt(0) || "") + (nom.charAt(0) || "") || "?";
+                var elImg = document.getElementById("photo-img");
+                var elInit = document.getElementById("photo-initials");
+                if (photoUrl) {
+                    elImg.src = photoUrl;
+                    elImg.classList.remove("hidden");
+                    elInit.classList.add("hidden");
+                } else {
+                    elImg.classList.add("hidden");
+                    elImg.removeAttribute("src");
+                    elInit.textContent = initials.toUpperCase();
+                    elInit.classList.remove("hidden");
+                }
+            }
+
+            function fillMetierSelect() {
+                var sel = document.getElementById("input-metier");
+                sel.innerHTML = "";
+                METIERS_OPTIONS.forEach(function(opt) {
+                    var o = document.createElement("option");
+                    o.value = opt.value;
+                    o.textContent = opt.label;
+                    sel.appendChild(o);
+                });
+            }
+
+            function fillDistanceSelect() {
+                var sel = document.getElementById("input-domicile-distance");
+                sel.innerHTML = "";
+                DISTANCES_OPTIONS.forEach(function(opt) {
+                    var o = document.createElement("option");
+                    o.value = opt.value;
+                    o.textContent = opt.label;
+                    sel.appendChild(o);
+                });
+            }
+
+            function toggleDomicileDetails() {
+                var checked = document.getElementById("input-domicile").checked;
+                var details = document.getElementById("domicile-details");
+                if (checked) details.classList.remove("hidden"); else details.classList.add("hidden");
+                profil.travailleADomicile = checked;
+            }
+
+            function fillProfilForm() {
+                document.getElementById("input-prenom").value = profil.prenom || "";
+                document.getElementById("input-nom").value = profil.nom || "";
+                fillMetierSelect();
+                document.getElementById("input-metier").value = profil.metier || "";
+                fillDistanceSelect();
+                document.getElementById("input-domicile").checked = profil.travailleADomicile === true;
+                document.getElementById("input-domicile-ville").value = profil.domicileVille || "";
+                document.getElementById("input-domicile-distance").value = (profil.domicileDistanceKm || 10).toString();
+                toggleDomicileDetails();
+                updateSelectPlaceholderStyle("input-metier");
+                updateSelectPlaceholderStyle("input-domicile-distance");
+                updatePhotoDisplay();
+            }
+
+            document.getElementById("input-prenom").addEventListener("input", function() { profil.prenom = this.value; updatePhotoDisplay(); });
+            document.getElementById("input-nom").addEventListener("input", function() { profil.nom = this.value; updatePhotoDisplay(); });
+            function updateSelectPlaceholderStyle(selectId) {
+                var el = document.getElementById(selectId);
+                if (!el) return;
+                if (el.value === "") el.classList.add("placeholder-gray"); else el.classList.remove("placeholder-gray");
+            }
+            document.getElementById("input-metier").addEventListener("change", function() {
+                profil.metier = this.value;
+                updateSelectPlaceholderStyle("input-metier");
+            });
+            document.getElementById("input-domicile").addEventListener("change", function() {
+                profil.travailleADomicile = this.checked;
+                toggleDomicileDetails();
+            });
+            document.getElementById("input-domicile-ville").addEventListener("input", function() { profil.domicileVille = this.value.trim(); });
+            document.getElementById("input-domicile-distance").addEventListener("change", function() {
+                profil.domicileDistanceKm = parseInt(this.value, 10) || 10;
+                updateSelectPlaceholderStyle("input-domicile-distance");
+            });
+
+            document.getElementById("btn-save-profil").addEventListener("click", function() {
+                profil.prenom = document.getElementById("input-prenom").value.trim();
+                profil.nom = document.getElementById("input-nom").value.trim();
+                profil.metier = document.getElementById("input-metier").value;
+                profil.travailleADomicile = document.getElementById("input-domicile").checked;
+                profil.domicileVille = document.getElementById("input-domicile-ville").value.trim();
+                profil.domicileDistanceKm = parseInt(document.getElementById("input-domicile-distance").value, 10) || 10;
+                saveProfil(profil);
+                updatePhotoDisplay();
+                showToast("Profil enregistré");
+            });
+
+            document.getElementById("photo-input").addEventListener("change", function(e) {
+                var f = e.target.files && e.target.files[0];
+                if (!f) return;
+                var r = new FileReader();
+                r.onload = function() {
+                    profil.photo = r.result;
+                    saveProfil(profil);
+                    updatePhotoDisplay();
+                    showToast("Photo mise à jour");
+                };
+                r.readAsDataURL(f);
+                e.target.value = "";
+            });
+
+            fillProfilForm();
+
+            // ---------- Plan / Abonnement ----------
+            function renderPlanSection() {
+                var plan = getCurrentPlan();
+                var planOrder = ["gratuit", "pro", "business"];
+                var currentIndex = planOrder.indexOf(plan.id);
+                var nextPlan = currentIndex < planOrder.length - 1 ? PLANS[planOrder[currentIndex + 1]] : null;
+
+                document.getElementById("plan-name").textContent = plan.name;
+                document.getElementById("plan-price").textContent = plan.priceLabel;
+
+                var upgradeBtn = document.getElementById("plan-upgrade-btn");
+                var upgradeLabel = document.getElementById("plan-upgrade-label");
+                var maxLabel = document.getElementById("plan-max-label");
+
+                if (nextPlan) {
+                    upgradeBtn.classList.remove("hidden");
+                    maxLabel.classList.add("hidden");
+                    upgradeLabel.textContent = "Passer à " + nextPlan.name + " (" + nextPlan.priceLabel + ")";
+                    upgradeBtn.href = "#"; // Remplacer par votre page tarifs ou checkout
+                    upgradeBtn.onclick = function(e) {
+                        e.preventDefault();
+                        // Exemple : window.location.href = '/tarifs'; ou ouvrir modal
+                        showToast("Redirection vers les tarifs…");
+                    };
+                } else {
+                    upgradeBtn.classList.add("hidden");
+                    maxLabel.classList.remove("hidden");
+                }
+            }
+            renderPlanSection();
+
+            // ---------- Locaux ----------
+            var editingLocalId = null;
+
+            function renderLocaux() {
+                var listEl = document.getElementById("locaux-list");
+                var emptyEl = document.getElementById("locaux-empty");
+                listEl.innerHTML = "";
+                if (locaux.length === 0) {
+                    emptyEl.classList.remove("hidden");
+                    return;
+                }
+                emptyEl.classList.add("hidden");
+                locaux.forEach(function(l) {
+                    var card = document.createElement("div");
+                    card.className = "px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:bg-gray-50/50 transition-colors";
+                    card.dataset.id = l.id;
+                    card.innerHTML =
+                        "<div class=\"min-w-0 flex-1\">" +
+                        "  <p class=\"font-medium text-gray-900 truncate\">" + escapeHtml(l.nom || "Sans nom") + "</p>" +
+                        "  <p class=\"text-sm text-gray-500 truncate mt-0.5\">" + escapeHtml(l.adresse || "—") + "</p>" +
+                        "</div>" +
+                        "<div class=\"flex items-center gap-2 shrink-0\">" +
+                        "  <button type=\"button\" class=\"p-2 text-gray-400 hover:text-gold-600 hover:bg-gold-50 rounded-lg transition-colors\" title=\"Modifier\"><iconify-icon icon=\"lucide:pencil\" width=\"18\"></iconify-icon></button>" +
+                        "  <button type=\"button\" class=\"p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors\" title=\"Supprimer\"><iconify-icon icon=\"lucide:trash-2\" width=\"18\"></iconify-icon></button>" +
+                        "</div>";
+                    var btnEdit = card.querySelector("button[title='Modifier']");
+                    var btnDel = card.querySelector("button[title='Supprimer']");
+                    btnEdit.addEventListener("click", function() { openModalLocal(l); });
+                    btnDel.addEventListener("click", function() { deleteLocal(l.id); });
+                    listEl.appendChild(card);
+                });
+            }
+
+            function escapeHtml(s) {
+                var div = document.createElement("div");
+                div.textContent = s;
+                return div.innerHTML;
+            }
+
+            function deleteLocal(id) {
+                if (!confirm("Supprimer ce local ?")) return;
+                locaux = locaux.filter(function(l) { return l.id !== id; });
+                saveLocaux(locaux);
+                renderLocaux();
+                showToast("Local supprimé");
+            }
+
+            function openModalLocal(local) {
+                editingLocalId = local ? local.id : null;
+                document.getElementById("modal-local-title").textContent = local ? "Modifier le local" : "Nouveau local";
+                document.getElementById("modal-local-nom").value = local ? (local.nom || "") : "";
+                document.getElementById("modal-local-adresse").value = local ? (local.adresse || "") : "";
+                document.getElementById("modal-local").classList.remove("hidden");
+            }
+
+            function closeModalLocal() {
+                document.getElementById("modal-local").classList.add("hidden");
+                editingLocalId = null;
+            }
+
+            function saveModalLocal() {
+                var nom = document.getElementById("modal-local-nom").value.trim();
+                var adresse = document.getElementById("modal-local-adresse").value.trim();
+                if (editingLocalId) {
+                    var found = locaux.filter(function(l) { return l.id === editingLocalId; })[0];
+                    if (found) {
+                        found.nom = nom;
+                        found.adresse = adresse;
+                    }
+                } else {
+                    locaux.push({
+                        id: "loc_" + Date.now(),
+                        nom: nom,
+                        adresse: adresse
+                    });
+                }
+                saveLocaux(locaux);
+                renderLocaux();
+                closeModalLocal();
+                showToast(editingLocalId ? "Local mis à jour" : "Local ajouté");
+            }
+
+            document.getElementById("btn-add-local").addEventListener("click", function() { openModalLocal(null); });
+            document.getElementById("modal-local-backdrop").addEventListener("click", closeModalLocal);
+            document.getElementById("modal-local-cancel").addEventListener("click", closeModalLocal);
+            document.getElementById("modal-local-save").addEventListener("click", saveModalLocal);
+
+            document.getElementById("modal-local-nom").addEventListener("keydown", function(e) {
+                if (e.key === "Enter") { e.preventDefault(); document.getElementById("modal-local-adresse").focus(); }
+            });
+            document.getElementById("modal-local-adresse").addEventListener("keydown", function(e) {
+                if (e.key === "Enter") { e.preventDefault(); saveModalLocal(); }
+            });
+
+            renderLocaux();
+
+            // ---------- Toast ----------
+            function showToast(message) {
+                var t = document.createElement("div");
+                t.className = "fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg shadow-lg z-[60] animate-fade-in";
+                t.textContent = message;
+                document.body.appendChild(t);
+                setTimeout(function() {
+                    t.remove();
+                }, 2500);
+            }
+        })();
+    </script>
+    <style>
+        @keyframes fade-in {
+            from { opacity: 0; transform: translate(-50%, 8px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        .animate-fade-in { animation: fade-in 0.25s ease-out; }
+    </style>
+</body>
+</html>

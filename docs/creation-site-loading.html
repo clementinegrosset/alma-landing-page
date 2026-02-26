@@ -74,6 +74,11 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
+        /* Placeholders en gris 400 */
+        input::placeholder { color: #9ca3af; }
+        select option[value=""] { color: #9ca3af; }
+        select.placeholder-gray { color: #9ca3af; }
+        select.placeholder-gray:focus { color: #111827; }
     </style>
 </head>
 <body class="bg-zinc-950 text-zinc-100 font-sans antialiased h-screen w-full overflow-hidden flex flex-col items-center justify-center relative">

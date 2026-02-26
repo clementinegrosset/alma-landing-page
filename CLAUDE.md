@@ -10,6 +10,7 @@ Balma is a showcase (vitrine) site for a booking and management platform dedicat
 
 - **Main Landing Page** (`index.html`): full vitrine with hero, problem/solution, key features (4), testimonials, how it works (3 steps), pricing, FAQ, final CTA, and footer. Single primary CTA: "Rejoindre la liste d'attente". Primary button color: gold (#C9A227), same as `docs/caisse.html` (Tailwind theme `gold-500` / `gold-600`).
 - **Auxiliary Pages** in `docs/` (e.g., `creation-site-loading.html`, `caisse.html`, `site-editor.html`)
+- **Site editor** (`docs/site-editor.html`): single preview for all views (client, editable, edit, view-only). Section titles and prestations spacing are defined once and apply to every view—e.g. "Mes avis clients", "Galerie" (not "Galerie Photos"), 8px under category title, 24px between category blocks and under "Prestations".
 - **No build process** - all dependencies loaded via CDN (Tailwind CSS, Iconify, Google Fonts)
 - **Two modal components**: waitlist signup form and info ("À propos") modal, controlled via vanilla JS; info modal accessible from footer
 
@@ -39,3 +40,4 @@ Push to GitHub triggers automatic deployment via Cloudflare Pages.
 ## Instructions for Claude
 
 - **Keep CLAUDE.md updated**: When committing and pushing changes, update this file if the changes affect architecture, features, dev commands, dependencies, or code patterns.
+- **Single codebase, conditional differences**: Prefer one shared implementation for all views (client, editable, edit, view-only, etc.) and handle exceptions or differences with conditions (e.g. CSS with `body.client-view`, `body.edit-active`, classes like `edit-only` / `edit-hide`, or JS conditionals). Avoid duplicating markup or logic per view.

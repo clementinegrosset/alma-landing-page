@@ -3,12 +3,11 @@
         "account",
         "booking",
         "client",
-        "dispinobilitÃ©sslots",
-        "disponibilitÃ©s",
+        "disponibilitesslots",
+        "disponibilites",
         "locaux",
         "prestationcategories",
         "prestations",
-        "project",
         "team",
         "website",
         "websitesections",
@@ -21,7 +20,95 @@
             "parameters": [
                 {
                     "key": "Slot",
-                    "value": "custom.dispinobilitÃ©sslots",
+                    "value": "custom.disponibilitesslots",
+                    "optional": false,
+                    "param_in": "body"
+                }
+            ],
+            "method": "post",
+            "auth_unecessary": false,
+            "return_btype": {}
+        },
+        {
+            "endpoint": "JS - Create new booking",
+            "parameters": [
+                {
+                    "key": "workspace",
+                    "value": "custom.workspace",
+                    "optional": false,
+                    "param_in": "body"
+                },
+                {
+                    "key": "client",
+                    "value": "custom.client",
+                    "optional": false,
+                    "param_in": "body"
+                },
+                {
+                    "key": "date_begin",
+                    "value": "date",
+                    "optional": false,
+                    "param_in": "body"
+                },
+                {
+                    "key": "date_end",
+                    "value": "date",
+                    "optional": false,
+                    "param_in": "body"
+                },
+                {
+                    "key": "prestation",
+                    "value": "custom.prestations",
+                    "optional": false,
+                    "param_in": "body"
+                },
+                {
+                    "key": "prix_paye",
+                    "value": "number",
+                    "optional": true,
+                    "param_in": "body"
+                },
+                {
+                    "key": "statut",
+                    "value": "option.os_statut_paiement",
+                    "optional": false,
+                    "param_in": "body"
+                }
+            ],
+            "method": "post",
+            "auth_unecessary": false,
+            "return_btype": {}
+        },
+        {
+            "endpoint": "JS - Create new client",
+            "parameters": [
+                {
+                    "key": "name_first",
+                    "value": "text",
+                    "optional": false,
+                    "param_in": "body"
+                },
+                {
+                    "key": "name_last",
+                    "value": "text",
+                    "optional": false,
+                    "param_in": "body"
+                },
+                {
+                    "key": "mail",
+                    "value": "text",
+                    "optional": false,
+                    "param_in": "body"
+                },
+                {
+                    "key": "phone",
+                    "value": "text",
+                    "optional": true,
+                    "param_in": "body"
+                },
+                {
+                    "key": "workspace",
+                    "value": "custom.workspace",
                     "optional": false,
                     "param_in": "body"
                 }
@@ -37,7 +124,7 @@
             "fields": [
                 {
                     "id": "___full_name_text",
-                    "display": "ðŸ¤– Full Name",
+                    "display": "Full Name",
                     "type": "text"
                 },
                 {
@@ -47,7 +134,7 @@
                 },
                 {
                     "id": "pr_nom_text",
-                    "display": "PrÃ©nom",
+                    "display": "Prenom",
                     "type": "text"
                 },
                 {
@@ -92,13 +179,18 @@
             "fields": [
                 {
                     "id": "assign____user",
-                    "display": "AssignÃ© Ã ",
+                    "display": "Assigne a",
                     "type": "user"
                 },
                 {
                     "id": "client_custom_client",
                     "display": "Client",
                     "type": "custom.client"
+                },
+                {
+                    "id": "commentaire_text",
+                    "display": "Commentaire",
+                    "type": "text"
                 },
                 {
                     "id": "date_date",
@@ -122,8 +214,13 @@
                 },
                 {
                     "id": "prix_pay__number",
-                    "display": "Prix_PayÃ©",
+                    "display": "Prix_Paye",
                     "type": "number"
+                },
+                {
+                    "id": "r_glement_custom_cashflow",
+                    "display": "Reglement",
+                    "type": "custom.cashflow"
                 },
                 {
                     "id": "range_date_range",
@@ -134,6 +231,11 @@
                     "id": "statut_option_os_statut_paiement",
                     "display": "Statut",
                     "type": "option.os_statut_paiement"
+                },
+                {
+                    "id": "type_option_os_type_booking",
+                    "display": "Type",
+                    "type": "option.os_type_booking"
                 },
                 {
                     "id": "workspace_custom_workspace",
@@ -172,7 +274,7 @@
             "fields": [
                 {
                     "id": "___full_name_text",
-                    "display": "ðŸ¤– Full Name",
+                    "display": "Full Name",
                     "type": "text"
                 },
                 {
@@ -192,7 +294,7 @@
                 },
                 {
                     "id": "pr_nom_text",
-                    "display": "PrÃ©nom",
+                    "display": "Prenom",
                     "type": "text"
                 },
                 {
@@ -202,7 +304,7 @@
                 },
                 {
                     "id": "t_l_phone_text",
-                    "display": "TÃ©lÃ©phone",
+                    "display": "Telephone",
                     "type": "text"
                 },
                 {
@@ -237,8 +339,8 @@
                 }
             ]
         },
-        "dispinobilitÃ©sslots": {
-            "display": "DispinobilitÃ©s Slots",
+        "disponibilitesslots": {
+            "display": "Disponibilites Slots",
             "fields": [
                 {
                     "id": "heure_start_number",
@@ -253,7 +355,7 @@
                 {
                     "id": "jour_custom_disponibilit_s",
                     "display": "Jour",
-                    "type": "custom.disponibilitÃ©s"
+                    "type": "custom.disponibilites"
                 },
                 {
                     "id": "minutes_start_number",
@@ -302,8 +404,8 @@
                 }
             ]
         },
-        "disponibilitÃ©s": {
-            "display": "DisponibilitÃ©s",
+        "disponibilites": {
+            "display": "Disponibilites",
             "fields": [
                 {
                     "id": "jour__number__number",
@@ -323,11 +425,11 @@
                 {
                     "id": "slots_list_custom_dispinobilit_s_slots",
                     "display": "Slots",
-                    "type": "list.custom.dispinobilitÃ©sslots"
+                    "type": "list.custom.disponibilitesslots"
                 },
                 {
                     "id": "slots_list_number_range",
-                    "display": "âŒslots",
+                    "display": "slots",
                     "type": "list.number_range"
                 },
                 {
@@ -472,7 +574,7 @@
             "fields": [
                 {
                     "id": "cat_gorie_custom_prestation_categories",
-                    "display": "CatÃ©gorie",
+                    "display": "Categorie",
                     "type": "custom.prestationcategories"
                 },
                 {
@@ -487,12 +589,12 @@
                 },
                 {
                     "id": "dur_e_min_number",
-                    "display": "DurÃ©e Min",
+                    "display": "Duree Min",
                     "type": "number"
                 },
                 {
                     "id": "dur_e_number",
-                    "display": "DurÃ©e Heure",
+                    "display": "Duree Heure",
                     "type": "number"
                 },
                 {
@@ -517,54 +619,19 @@
                 },
                 {
                     "id": "responsable_custom_team",
-                    "display": "âŒ Responsable",
+                    "display": "Responsable",
                     "type": "custom.team"
                 },
                 {
                     "id": "responsable_user",
-                    "display": "âŒAssignÃ© Ã ",
+                    "display": "Assigne a",
                     "type": "user"
                 },
                 {
                     "id": "type_option_os_prestation_type",
-                    "display": "âŒType",
+                    "display": "Type",
                     "type": "option.os_prestation_type"
                 },
-                {
-                    "id": "workspace_custom_workspace",
-                    "display": "Workspace",
-                    "type": "custom.workspace"
-                },
-                {
-                    "id": "Created Date",
-                    "display": "Created Date",
-                    "type": "date"
-                },
-                {
-                    "id": "Modified Date",
-                    "display": "Modified Date",
-                    "type": "date"
-                },
-                {
-                    "id": "Created By",
-                    "display": "Created By",
-                    "type": "user"
-                },
-                {
-                    "id": "_id",
-                    "display": "unique ID",
-                    "type": "text"
-                },
-                {
-                    "id": "Slug",
-                    "display": "Slug",
-                    "type": "text"
-                }
-            ]
-        },
-        "project": {
-            "display": "Project",
-            "fields": [
                 {
                     "id": "workspace_custom_workspace",
                     "display": "Workspace",
@@ -687,7 +754,7 @@
                 },
                 {
                     "id": "publi__boolean",
-                    "display": "PubliÃ©",
+                    "display": "Publie",
                     "type": "boolean"
                 },
                 {
@@ -842,7 +909,7 @@
                 },
                 {
                     "id": "m_tier_option_os_m_tiers",
-                    "display": "MÃ©tier",
+                    "display": "Metier",
                     "type": "option.os_m_tiers"
                 },
                 {

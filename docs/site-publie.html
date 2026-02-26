@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balma - Votre site est en ligne</title>
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>✨</text></svg>">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { gold: { 400: '#F4D03F', 500: '#C9A227', 600: '#B7950B' } } } } };
+    </script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+
+    <style>
+        .font-geist { font-family: 'Inter', sans-serif; }
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+
+        .card-light {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-transparent text-gray-900 font-sans antialiased">
+
+    <main class="w-full max-w-none">
+        <div class="card-light rounded-2xl text-center">
+            <!-- Votre lien -->
+            <p class="text-xs font-medium text-gray-500 font-geist text-left mb-1.5">Votre lien</p>
+            <div class="link-box flex items-center gap-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 mb-4">
+                <input type="text" id="site-url" readonly
+                       class="flex-1 min-w-0 bg-transparent text-gray-900 font-geist text-sm focus:outline-none"
+                       value="">
+                <span id="copy-feedback" class="text-xs text-gray-400 font-geist hidden">Copié</span>
+                <button type="button" id="btn-copy" class="flex-shrink-0 p-2 rounded-lg text-gray-500 hover:text-gold-600 hover:bg-amber-50 transition-colors" title="Copier le lien" aria-label="Copier le lien">
+                    <iconify-icon icon="lucide:copy" width="18"></iconify-icon>
+                </button>
+            </div>
+
+            <!-- Partager avec un QR code -->
+            <p class="text-xs font-medium text-gray-500 font-geist text-left mb-2">Partager avec un QR code</p>
+            <div class="inline-flex items-center justify-center rounded-xl bg-white p-3">
+                <img id="qr-code" src="" alt="QR code du site" width="160" height="160" class="rounded-lg">
+            </div>
+        </div>
+    </main>
+
+    <script>
+        (function () {
+            var BASE_URL = 'https://balma.co/site/';
+
+            function getSiteUrl() {
+                var params = new URLSearchParams(window.location.search);
+                var url = params.get('url');
+                if (url) return url;
+                var slug = params.get('slug') || params.get('name');
+                if (slug) return BASE_URL + slug.replace(/^\//, '');
+                return BASE_URL + 'mon-espace';
+            }
+
+            var siteUrl = getSiteUrl();
+            var urlInput = document.getElementById('site-url');
+            var qrImg = document.getElementById('qr-code');
+            var btnCopy = document.getElementById('btn-copy');
+            var copyFeedback = document.getElementById('copy-feedback');
+
+            if (urlInput) urlInput.value = siteUrl;
+            if (qrImg) {
+                qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=8&data=' + encodeURIComponent(siteUrl);
+            }
+
+            function copyToClipboard() {
+                if (!urlInput) return;
+                urlInput.select();
+                urlInput.setSelectionRange(0, 99999);
+                try {
+                    navigator.clipboard.writeText(siteUrl);
+                    if (copyFeedback) {
+                        copyFeedback.classList.remove('hidden');
+                        setTimeout(function () { copyFeedback.classList.add('hidden'); }, 2000);
+                    }
+                    if (btnCopy) {
+                        var icon = btnCopy.querySelector('iconify-icon');
+                        if (icon) icon.setAttribute('icon', 'lucide:check');
+                        setTimeout(function () {
+                            if (icon) icon.setAttribute('icon', 'lucide:copy');
+                        }, 2000);
+                    }
+                } catch (e) {
+                    /* fallback: already selected, user can Cmd+C */
+                }
+            }
+
+            if (btnCopy) btnCopy.addEventListener('click', copyToClipboard);
+        })();
+    </script>
+</body>
+</html>
